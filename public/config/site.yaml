@@ -1,0 +1,80 @@
+# ─────────────────────────────────────────────────────────────
+#  Project: Niijima — landing page config
+#  Edited at runtime: no rebuild needed (Docker mounts this folder).
+# ─────────────────────────────────────────────────────────────
+
+domain: niijimasisters.com
+title: Niijima Network
+
+# The two halves of the split screen.
+# image.desktop  → used on landscape screens (left/right split)
+# image.mobile   → used on portrait screens (top/bottom split); falls back to desktop
+# focusX/focusY  → which point of the image stays in view when cropped (0–100 %)
+# scale          → zoom the art inside its half (1 = fit height)
+# offsetX/Y      → nudge the art in % of its half (handy for poses not facing the tear)
+# ready: false   → clicking shows a "not ready" calling card instead of navigating
+sisters:
+  makoto:
+    name: Makoto
+    surname: Niijima
+    codename: Queen
+    arcana: Priestess
+    tagline: Student Council President
+    url: https://makoto.niijimasisters.com
+    ready: false
+    accent: "#3f8cff"
+    image:
+      desktop: /assets/makoto.webp
+      mobile: /assets/makoto-mobile.webp
+      focusX: 50
+      focusY: 25
+      scale: 1
+      offsetX: 0
+      offsetY: 0
+  sae:
+    name: Sae
+    surname: Niijima
+    codename: Prosecutor
+    arcana: Judgement
+    tagline: Public Prosecutor
+    url: https://sae.niijimasisters.com
+    ready: false
+    accent: "#e7b544"
+    image:
+      desktop: /assets/sae.webp
+      mobile: /assets/sae-mobile.webp
+      focusX: 50
+      focusY: 25
+      scale: 1
+      offsetX: 0
+      offsetY: 0
+
+# Center emblem sitting on the tear. Leave empty for the placeholder.
+emblem: /assets/emblem.png
+
+# The "Take your time" loader.
+# type: sprite → horizontal strip of equally sized frames (works on every device)
+# type: video  → .webm/.mp4 (transparency won't survive on iPhone; sprite is safer)
+# type: none   → built-in placeholder spinner
+loader:
+  type: sprite
+  src: /assets/loader.png
+  frames: 16          # frames in the strip
+  fps: 24
+  size: 160           # displayed height in px (width keeps the frame ratio)
+  text: Take your time
+  minDuration: 900    # ms the loader stays up before navigating
+
+# In-game style calendar (top-left of the hub).
+calendar:
+  timezone: Europe/Budapest
+  weather: true       # uses open-meteo.com (free, no key)
+  latitude: 47.4979
+  longitude: 19.0402
+
+# Ping each service and show ONLINE / OFFLINE in the hub.
+statusChecks: true
+
+# Where the hub gets its list of services. Later this can point at /api/services
+# (Traefik/Docker label discovery) without touching the frontend.
+servicesSource: /config/services.yaml

@@ -1,0 +1,31 @@
+# Example service block — paste into the same compose file as Traefik
+# (e.g. ~/zipline/docker-compose.yml) so it shares Traefik's network.
+#
+# Assumes Traefik v3 with the Docker provider and an entrypoint called "web"
+# on :80 (cloudflared → localhost:80). Rename "web" if yours differs.
+
+services:
+  landing:
+    build: ./Project-Niijima-landing-page   # path to this repo on the server
+    container_name: niijima-landing
+    restart: unless-stopped
+    volumes:
+      # Edit config and drop art in without rebuilding the image.
+      - ./Project-Niijima-landing-page/public/config:/usr/share/nginx/html/config:ro
+      - ./Project-Niijima-landing-page/public/assets:/usr/share/nginx/html/assets:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.landing.loadbalancer.server.port=80
+
+      # Root domain → split screen
+      - traefik.http.routers.landing.rule=Host(`niijimasisters.com`) || Host(`www.niijimasisters.com`)
+      - traefik.http.routers.landing.entrypoints=web
+      - traefik.http.routers.landing.service=landing
+
+      # Catch-all: any subdomain no other router claims → "This Palace doesn't exist"
+      # Priority 1 means every real service (mementos, compendium, treasure…) wins first.
+      # Traefik v2 syntax instead: HostRegexp(`{sub:.+}.niijimasisters.com`)
+      - traefik.http.routers.landing-catchall.rule=HostRegexp(`^.+\.niijimasisters\.com$`)
+      - traefik.http.routers.landing-catchall.entrypoints=web
+      - traefik.http.routers.landing-catchall.priority=1
+      - traefik.http.routers.landing-catchall.service=landing

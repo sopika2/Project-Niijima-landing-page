@@ -1,0 +1,29 @@
+# Every entry becomes a menu item in the hub.
+# Add a new subdomain here and reload the page — no rebuild needed.
+#
+# id        unique key
+# name      big menu text
+# subtitle  small line under it
+# url       where it goes
+# patron    optional: makoto | sae — tints the item with that sister's accent
+# hidden    optional: true keeps it out of the menu
+# status    optional: false skips the online check for this one
+
+services:
+  - id: mementos
+    name: Mementos
+    subtitle: Image vault
+    url: https://mementos.niijimasisters.com
+    patron: sae
+
+  - id: compendium
+    name: Compendium
+    subtitle: Wiki & notes
+    url: https://compendium.niijimasisters.com
+    patron: makoto
+
+  - id: treasure
+    name: Treasure
+    subtitle: Finance tracker
+    url: https://treasure.niijimasisters.com
+    patron: makoto
