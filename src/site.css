@@ -14,6 +14,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--ink); 
   visibility: visible; pointer-events: all;
   animation: nj-loader-in .38s cubic-bezier(.7, 0, .2, 1) both;
 }
+/* first paint: already in place. Declared before is-leaving so the exit wipe still wins. */
+.nj-loader.is-instant { animation: none; clip-path: none; }
+.nj-loader.is-instant .nj-loader__band { animation: none; }
 .nj-loader.is-leaving { animation: nj-loader-out .46s cubic-bezier(.7, 0, .2, 1) both; }
 @keyframes nj-loader-in {
   from { clip-path: polygon(0 0, 0 0, -18% 100%, -18% 100%); }

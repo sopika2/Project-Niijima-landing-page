@@ -6,7 +6,8 @@
 import type { LoaderConfig } from "./config";
 
 export interface Loader {
-  show(): Promise<void>;
+  /** `instant` skips the wipe-in: on first paint the loader is simply already there. */
+  show(instant?: boolean): Promise<void>;
   hide(): Promise<void>;
   /** Shows the loader, waits at least minDuration, then runs `go`. */
   through(go: () => void): Promise<void>;
@@ -36,18 +37,19 @@ export function createLoader(cfg: LoaderConfig): Loader {
 
   let visible = false;
 
-  async function show() {
+  async function show(instant = false) {
     if (visible) return;
     visible = true;
     root.classList.remove("is-leaving");
+    root.classList.toggle("is-instant", instant);
     root.classList.add("is-visible");
-    await wait(reduceMotion() ? 0 : 380);
+    await wait(instant || reduceMotion() ? 0 : 380);
   }
   async function hide() {
     if (!visible) return;
     root.classList.add("is-leaving");
     await wait(reduceMotion() ? 0 : 460);
-    root.classList.remove("is-visible", "is-leaving");
+    root.classList.remove("is-visible", "is-leaving", "is-instant");
     visible = false;
   }
   async function through(go: () => void) {
