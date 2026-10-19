@@ -21,7 +21,7 @@ services:
     arcana: II
     arcanaName: The Priestess
     desc: Makoto’s own corner of the network.
-    render: /assets/menu-makoto.png
+    render: /assets/menu-makoto.webp
     renderFit: cover
 
   - id: sae
@@ -32,7 +32,7 @@ services:
     arcana: XX
     arcanaName: Judgement
     desc: Sae’s own corner of the network.
-    render: /assets/menu-sae.png
+    render: /assets/menu-sae.webp
     renderFit: cover
 
   - id: mementos
@@ -43,7 +43,7 @@ services:
     arcana: XVIII
     arcanaName: The Moon
     desc: Image vault. Drop a screenshot, get a link that embeds anywhere.
-    render: /assets/menu-mementos.png
+    render: /assets/menu-mementos.webp
     renderFit: cover
 
   - id: compendium
@@ -54,17 +54,18 @@ services:
     arcana: XI
     arcanaName: Strength
     desc: The wiki. Every note, guide and record, kept like the Velvet Room keeps its compendium.
-    render: /assets/menu-compendium.png
+    render: /assets/menu-compendium.webp
     renderFit: cover
 
   - id: treasure
     label: Treasure
     host: treasure.niijimasisters.com
-    hint: Finance tracker
-    status: locked
+    hint: Private · Discord sign-in
+    status: online
+    monitorId: null
     arcana: X
     arcanaName: Fortune
-    desc: In planning. Budgets, recurring entries, every currency.
+    desc: The finance tracker. Members only — sign in with Discord.
 
   - id: next
     label: Next
