@@ -1,16 +1,24 @@
-# Art goes here
+# Art and sounds go here
 
-Drop files in with these names (or change the paths in `config/site.yaml`).
-Anything missing shows a labelled placeholder, so the page works before the art exists.
+Everything in this folder is yours and stays out of git (see `.gitignore`) — official game art and
+sound rips shouldn't end up in a public repo. In Docker this folder is a volume, so drop files in and reload.
+Paths are set in `config/site.yaml` and `config/services.yaml`; a missing file just shows the
+labelled placeholder slot (or stays silent, for sounds).
 
-| File | What | Notes |
+## Images
+
+| File | Where it shows | Notes |
 |---|---|---|
-| `makoto.webp` | Makoto, desktop | Transparent background. ~1600×2400 or larger. Shown in the left half. |
-| `sae.webp` | Sae, desktop | Same, right half. |
-| `makoto-mobile.webp` | Makoto, phone | Optional. Wider crop (~1200×900) for the top half. Falls back to the desktop image. |
-| `sae-mobile.webp` | Sae, phone | Optional. Same, bottom half. |
-| `emblem.png` | Center emblem | Optional. Square, transparent. Sits inside the round badge on the tear. |
-| `loader.png` | "Take your time" figure | Horizontal sprite strip, all frames the same size. Set `frames` and `fps` in `site.yaml`. Or use a video with `type: video`. |
+| `makoto-landing.png` | Left half of the split (top on phones) | Transparent PNG. Full-body cutouts: leave `renderFit` out. Square bust-ups (e.g. the 768×768 P5R portraits): `renderFit: cover`. Never upscaled, so use the biggest source you have. |
+| `sae-landing.png` | Right half (bottom on phones) | Same. |
+| `menu-<id>.png` | Next to the Network menu while that entry is selected | One per entry in `services.yaml` (`render:`). |
+| `loader.png` | "Take your time" figure, bottom-right | Horizontal sprite strip, all frames the same size. Set `frames` / `fps` and `type: sprite` in `site.yaml`. Or a `.webm` with `type: video`. |
 
-Poses don't need to face each other — use `focusX`, `offsetX/Y` and `scale` per image in `site.yaml`
-to place each sister inside her half.
+The cutout gets the sister's hard comic outline + offset drop-shadows automatically
+(Makoto: cyan / red, Sae: crimson / gold), so supply the art without any outline of its own.
+
+## Sounds (`sfx/`)
+
+`hover.wav` · `move.wav` · `confirm.wav` · `slash.wav` · `back.wav` · `error.wav` — wav, ogg or mp3.
+Visitors get a Sound on/off toggle (remembered per browser). Browsers only allow audio after the
+first click or key press, so the very first hover is silent — that's expected.

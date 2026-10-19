@@ -1,29 +1,75 @@
-# Every entry becomes a menu item in the hub.
-# Add a new subdomain here and reload the page — no rebuild needed.
+# The Network menu, top to bottom. Add an entry, reload, it's there.
 #
-# id        unique key
-# name      big menu text
-# subtitle  small line under it
-# url       where it goes
-# patron    optional: makoto | sae — tints the item with that sister's accent
-# hidden    optional: true keeps it out of the menu
-# status    optional: false skips the online check for this one
+#   id          unique key (also used for Kuma/ping results)
+#   label       the big menu word
+#   host / url  where it goes (url wins if both are set)
+#   hint        small line (shown for locked entries instead of the host)
+#   status      online · soon · locked     (live checks override online entries with online / down / pending / maintenance)
+#   accent      makoto · sae · (none = thief red)
+#   monitorId   the number in Kuma's /dashboard/<id> URL — that monitor must be on the status page
+#   check       false = never ping this one
+#   arcana / arcanaName / desc   the card in the speech box
+#   render      bust-up shown next to the menu while selected; renderFit: cover for square portraits
+#   hidden      true = keep it out of the menu
 
 services:
+  - id: makoto
+    label: Makoto
+    host: makoto.niijimasisters.com
+    status: soon
+    accent: makoto
+    arcana: II
+    arcanaName: The Priestess
+    desc: Makoto’s own corner of the network.
+    render: /assets/menu-makoto.png
+    renderFit: cover
+
+  - id: sae
+    label: Sae
+    host: sae.niijimasisters.com
+    status: soon
+    accent: sae
+    arcana: XX
+    arcanaName: Judgement
+    desc: Sae’s own corner of the network.
+    render: /assets/menu-sae.png
+    renderFit: cover
+
   - id: mementos
-    name: Mementos
-    subtitle: Image vault
-    url: https://mementos.niijimasisters.com
-    patron: sae
+    label: Mementos
+    host: mementos.niijimasisters.com
+    status: online
+    monitorId: null
+    arcana: XVIII
+    arcanaName: The Moon
+    desc: Image vault. Drop a screenshot, get a link that embeds anywhere.
+    render: /assets/menu-mementos.png
+    renderFit: cover
 
   - id: compendium
-    name: Compendium
-    subtitle: Wiki & notes
-    url: https://compendium.niijimasisters.com
-    patron: makoto
+    label: Compendium
+    host: compendium.niijimasisters.com
+    status: online
+    monitorId: null
+    arcana: XI
+    arcanaName: Strength
+    desc: The wiki. Every note, guide and record, kept like the Velvet Room keeps its compendium.
+    render: /assets/menu-compendium.png
+    renderFit: cover
 
   - id: treasure
-    name: Treasure
-    subtitle: Finance tracker
-    url: https://treasure.niijimasisters.com
-    patron: makoto
+    label: Treasure
+    host: treasure.niijimasisters.com
+    hint: Finance tracker
+    status: locked
+    arcana: X
+    arcanaName: Fortune
+    desc: In planning. Budgets, recurring entries, every currency.
+
+  - id: next
+    label: Next
+    hint: Reserved slot
+    status: locked
+    arcana: "0"
+    arcanaName: The Fool
+    desc: Kept free for whatever comes next.

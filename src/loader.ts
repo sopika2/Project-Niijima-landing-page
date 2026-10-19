@@ -1,9 +1,9 @@
-// "Take your time" loading screen.
-// The figure in the bottom-right corner is whatever asset you drop in
-// (sprite strip or video). Without one, a plain placeholder spinner is shown.
+// "Take your time" — the loading card between the site and wherever it's sending you.
+// Shown on the very first paint (while the YAML and fonts arrive) and after the shard wipe
+// when leaving for a subdomain. The figure in the corner is your own sprite strip or video;
+// without one, a spinning thief-star stands in.
 
 import type { LoaderConfig } from "./config";
-import { ransom } from "./ransom";
 
 export interface Loader {
   show(): Promise<void>;
@@ -13,25 +13,25 @@ export interface Loader {
 }
 
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 export function createLoader(cfg: LoaderConfig): Loader {
   const root = document.createElement("div");
-  root.className = "loader";
+  root.className = "nj-loader";
   root.setAttribute("role", "status");
   root.setAttribute("aria-live", "polite");
   root.innerHTML = `
-    <div class="loader__wipe" aria-hidden="true"></div>
-    <div class="loader__corner">
-      <div class="loader__figure" aria-hidden="true"></div>
-      <div class="loader__text"></div>
+    <div class="nj-loader__bg" aria-hidden="true"><i class="nj-loader__band"></i><i class="nj-loader__band nj-loader__band--thin"></i></div>
+    <div class="nj-loader__corner">
+      <div class="nj-loader__figure" aria-hidden="true"></div>
+      <div class="nj-loader__text"></div>
     </div>`;
-  root.querySelector(".loader__text")!.append(ransom(cfg.text.toUpperCase(), { palette: "dark", seed: "loader" }));
-
-  const figure = root.querySelector<HTMLElement>(".loader__figure")!;
+  window.Niijima.ransom(root.querySelector<HTMLElement>(".nj-loader__text")!, cfg.text.toUpperCase(), {
+    seed: "loader", tiles: ["paper", "ink", "red"], animate: false,
+  });
+  const figure = root.querySelector<HTMLElement>(".nj-loader__figure")!;
   figure.style.setProperty("--size", `${cfg.size}px`);
   mountFigure(figure, cfg);
-
   document.body.append(root);
 
   let visible = false;
@@ -41,30 +41,24 @@ export function createLoader(cfg: LoaderConfig): Loader {
     visible = true;
     root.classList.remove("is-leaving");
     root.classList.add("is-visible");
-    await wait(reduceMotion() ? 0 : 420);
+    await wait(reduceMotion() ? 0 : 380);
   }
-
   async function hide() {
     if (!visible) return;
     root.classList.add("is-leaving");
-    await wait(reduceMotion() ? 0 : 480);
+    await wait(reduceMotion() ? 0 : 460);
     root.classList.remove("is-visible", "is-leaving");
     visible = false;
   }
-
   async function through(go: () => void) {
     await show();
     await wait(cfg.minDuration);
     go();
   }
 
-  // Coming back with the browser's back button restores the page from cache
-  // with the loader still up — drop it.
+  // Back button restores the page from the bfcache with the loader still up: drop it.
   window.addEventListener("pageshow", (e) => {
-    if (e.persisted) {
-      root.classList.remove("is-visible", "is-leaving");
-      visible = false;
-    }
+    if (e.persisted) { root.classList.remove("is-visible", "is-leaving"); visible = false; }
   });
 
   return { show, hide, through };
@@ -72,10 +66,10 @@ export function createLoader(cfg: LoaderConfig): Loader {
 
 function mountFigure(el: HTMLElement, cfg: LoaderConfig) {
   const placeholder = () => {
-    el.classList.add("loader__figure--placeholder");
-    el.innerHTML = `<svg viewBox="0 0 100 100"><polygon points="50,4 61,38 97,38 68,59 79,94 50,72 21,94 32,59 3,38 39,38"/></svg>`;
+    el.className = "nj-loader__figure nj-loader__figure--placeholder";
+    el.style.backgroundImage = "";
+    el.innerHTML = `<svg viewBox="0 0 100 100"><polygon points="50,3 61,37 97,37 68,59 79,95 50,73 21,95 32,59 3,37 39,37"/></svg>`;
   };
-
   if (cfg.type === "video" && cfg.src) {
     const v = document.createElement("video");
     Object.assign(v, { src: cfg.src, autoplay: true, loop: true, muted: true, playsInline: true });
@@ -84,15 +78,12 @@ function mountFigure(el: HTMLElement, cfg: LoaderConfig) {
     el.append(v);
     return;
   }
-
   if (cfg.type === "sprite" && cfg.src) {
     const img = new Image();
     img.onload = () => {
       const frames = Math.max(1, cfg.frames);
-      const fw = img.naturalWidth / frames;
-      const ratio = fw / img.naturalHeight;
-      el.classList.add("loader__figure--sprite");
-      el.style.setProperty("--ratio", String(ratio));
+      el.classList.add("nj-loader__figure--sprite");
+      el.style.setProperty("--ratio", String(img.naturalWidth / frames / img.naturalHeight));
       el.style.setProperty("--frames", String(frames));
       el.style.setProperty("--dur", `${(frames / Math.max(1, cfg.fps)).toFixed(3)}s`);
       el.style.backgroundImage = `url("${cfg.src}")`;
@@ -101,6 +92,5 @@ function mountFigure(el: HTMLElement, cfg: LoaderConfig) {
     img.src = cfg.src;
     return;
   }
-
   placeholder();
 }
