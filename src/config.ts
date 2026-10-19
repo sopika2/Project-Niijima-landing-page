@@ -6,7 +6,7 @@ import { parse } from "yaml";
 import type { NjConfig, NjEntry, NjSister, Status } from "./niijima/niijima.d";
 
 export interface LoaderConfig {
-  type: "sprite" | "video" | "none";
+  type: "image" | "gif" | "sprite" | "video" | "none";
   src?: string;
   frames: number;
   fps: number;
