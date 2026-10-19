@@ -1,89 +1,100 @@
 # Project: Niijima — landing page
 
 The front door of **niijimasisters.com**. Persona 5 styled, built around Makoto and Sae Niijima.
+The page is a locked, non-scrolling two-screen game menu on desktop and phone.
 
-- **Split screen** — Makoto and Sae, separated by a torn-paper edge. Hover/tap a side to focus it; click to go to her page.
-- **Hub** — pause-menu list of every Niijima Network service, with the in-game style calendar and live online/offline status.
-- **Loader** — "Take your time" screen between every transition, with your figure in the bottom-right corner.
-- **404 Palace** — any unknown subdomain or path lands on "This Palace doesn't exist".
-
-The page never scrolls, on desktop or phone.
+- **The split** — Makoto left, Sae right (top/bottom on phones), separated by a **torn-paper edge**
+  that follows the guillotine cut: two ragged edges with white paper showing between them.
+  Hovering slides the tear toward the other sister. `edge: clean` brings back the plain bolt.
+- **The Network** — the pause-menu hub. Boiling red selection blade, ransom-note active item,
+  a comic speech box with each entry's card and bust-up, the in-game **calendar with weather**,
+  and an **ONLINE x/y** counter fed by Uptime Kuma or, without it, a ping of every live entry.
+- **Shard wipes** between screens and **"Take your time"** before leaving for a subdomain (and on first paint).
+- **404 Palace** — any unknown subdomain (Traefik's wildcard catch-all) or path: "This Palace doesn't exist".
+- **Sounds** — your own files for hover / move / confirm / slash / back / error, with a Sound on/off toggle.
+- **YAML config** read at runtime. Edit, reload, done.
 
 ## Controls
 
 | | Desktop | Phone |
 |---|---|---|
-| Focus a sister | Hover, or ← → (A/D) | Tap once |
-| Enter her page | Click, or Enter | Tap again / tap the button |
-| Open the menu | Center emblem, Esc, or Tab | Tap the emblem |
-| Move in menu | ↑ ↓ (W/S), Enter | Tap |
-| Back | Esc | Back button |
+| Pick a sister | Hover / ← → , click or Enter | Tap |
+| Open the Network | "The Network" button, or pick a sister | Tap |
+| Move in the menu | ↑ ↓ , Enter | Tap |
+| Back | Esc, or the BACK button | BACK / browser back |
 
-In portrait the split is top/bottom, so it's ↑ ↓ instead of ← →.
+The Network is `#network`, so browser back/forward and direct links work.
 
-## Config (no rebuild needed)
+## Config — `public/config/` (no rebuild)
 
-Both files live in `public/config/` and are loaded at runtime.
+- **`site.yaml`** — domain, the two sisters (name, plates, tagline, render, status), torn/clean edge,
+  loader, calendar (timezone + weather location), status checks (Kuma URL / ping), sounds.
+- **`services.yaml`** — the Network menu, top to bottom. Add a subdomain there and reload.
+  `status: online | soon | locked`; `soon` and `locked` entries show a stamp instead of navigating.
 
-- **`site.yaml`** — sister names/codenames/arcana/colours, image paths and positioning, loader, calendar location, emblem.
-- **`services.yaml`** — the hub menu. Add a subdomain there and reload.
+JSON works as well as YAML, so `servicesSource` can later point at an `/api/services` endpoint.
+Keys from the first version of this repo (`name`, `subtitle`, `patron`, `ready`, `image.desktop`) are still understood.
 
-Set `ready: true` on a sister once her subdomain exists; until then clicking her shows a "not yet" calling card.
+### Online / offline
 
-## Art
+- **Uptime Kuma** (real up / down / pending / maintenance): set `status.kuma` to your status page's
+  `/api/status-page/heartbeat/<slug>` and give entries a `monitorId`. Easiest same-origin via Traefik —
+  see the commented block in `docker-compose.example.yml`. The badge says **LIVE**.
+- **Ping fallback** (`status.ping: true`): every `online` entry without Kuma data gets a no-cors request.
+  The browser can't read cross-origin status codes, so it only knows "answered" (ONLINE) vs.
+  "network error / 5 s timeout" (DOWN). The badge says **PING**. With neither, it says **CONFIG**.
 
-See [`public/assets/README.md`](public/assets/README.md) for file names and sizes. Missing files show placeholders.
+## Art and sounds — `public/assets/`
+
+See [`public/assets/README.md`](public/assets/README.md). The folder is git-ignored apart from its README
+and the favicon, so game art and sound rips stay on your server, not in the public repo.
 
 ## Develop
 
 ```bash
 npm install
 npm run dev        # http://localhost:5173
+npm run build      # → dist/
 ```
 
-Handy preview URLs:
+Preview URLs: `/?view=network` (straight into the menu) · `/?preview=loader` (loader stays up) · `/?preview=404`.
 
-- `/?view=hub` — open straight into the hub
-- `/?preview=loader` — keep the loader on screen (for checking your sprite)
-- `/?preview=404` — the 404 Palace
+## Deploy (Docker + nginx + Traefik)
 
-## Deploy (Traefik + Docker)
+`docker-compose.example.yml` has a ready service block. It
 
-`docker-compose.example.yml` has a ready service block. It:
+1. builds the image (Node build stage → nginx serving `dist/`),
+2. mounts `public/config` and `public/assets` read-only, so config, art and sounds change without a rebuild,
+3. routes `niijimasisters.com` and `www.` to the landing page,
+4. adds a **priority-1 wildcard catch-all** (`HostRegexp(^.+\.niijimasisters\.com$)`), so any subdomain no
+   other router claims gets the 404 Palace — every real service wins first,
+5. optionally exposes Kuma's status JSON on the root domain for live statuses.
 
-1. builds the image (nginx serving the built site),
-2. mounts `public/config` and `public/assets` so you can change config and art without rebuilding,
-3. routes `niijimasisters.com` and `www.` to the split screen,
-4. adds a lowest-priority catch-all so unknown subdomains get the 404 Palace.
-
-For the catch-all to receive traffic, the Cloudflare tunnel needs a wildcard hostname
+For the catch-all to get traffic, the Cloudflare tunnel needs a wildcard hostname
 (`*.niijimasisters.com → http://localhost:80`) and a wildcard DNS record pointing at the tunnel.
+
+nginx: `/config/` is never cached, `/assets/` for a day, hashed `/_app/` forever, everything else falls back to `index.html`.
 
 ## Layout
 
 ```
-public/config/   site.yaml, services.yaml   ← edit these
-public/assets/   your art                    ← drop files here
+public/config/     site.yaml, services.yaml        ← edit these
+public/assets/     your art + sfx/                  ← drop files here (git-ignored)
 src/
-  main.ts        boot, routing, keyboard
-  split.ts       split screen
-  tear.ts        torn-paper edge geometry
-  hub.ts         pause-menu hub + status checks
-  calendar.ts    date / time of day / weather block
-  loader.ts      "Take your time" screen
-  notfound.ts    404 Palace
-  notice.ts      calling-card notices
-  ransom.ts      ransom-note lettering
-  style.css      every visual lives here
+  main.ts          boot: config → 404 or home, loader between leaving and arriving
+  config.ts        YAML/JSON loading + defaults
+  status.ts        Uptime Kuma polling + no-cors ping fallback
+  loader.ts        "Take your time"
+  notfound.ts      404 Palace
+  site.css         page shell, loader, Palace
+  fonts.ts         bundled fonts
+  niijima/         the UI itself (split, torn edge, Network menu, HUD + weather, wipes, stamps, sounds)
+                   — same code as the Niijima Network design system
 ```
-
-## Later: automatic service discovery
-
-The hub reads its list from `servicesSource` in `site.yaml`. It accepts YAML or JSON, so a small
-`/api/services` endpoint that reads Traefik/Docker labels (e.g. `niijima.show=true`, `niijima.name=…`)
-can replace `services.yaml` without touching the frontend.
 
 ## Fonts
 
-Bundled with the app (no Google Fonts request): Anton, Archivo Black, Bebas Neue, Oswald,
-Playfair Display, Rubik Mono One — all SIL Open Font License.
+Bundled (no Google Fonts request), all SIL Open Font License: Anton (display), Barlow Semi Condensed (body),
+and the ransom-note faces Abril Fatface, Alfa Slab One, Archivo Black, Special Elite.
+
+Fan site · Persona 5 © ATLUS / SEGA · not affiliated.

@@ -3,3 +3,12 @@ dist/
 .DS_Store
 *.log
 .env
+
+# Your art and sounds live in public/assets (or the Docker volume) — keep official
+# game rips out of a public repo. favicon + READMEs stay tracked.
+public/assets/*
+!public/assets/README.md
+!public/assets/favicon.svg
+!public/assets/sfx/
+public/assets/sfx/*
+!public/assets/sfx/README.md

@@ -1,80 +1,85 @@
 # ─────────────────────────────────────────────────────────────
-#  Project: Niijima — landing page config
-#  Edited at runtime: no rebuild needed (Docker mounts this folder).
+#  Niijima Network — site config
+#  Read on every page load: edit, save, reload. No rebuild.
+#  (Docker mounts this folder; JSON works too if you prefer.)
 # ─────────────────────────────────────────────────────────────
 
-domain: niijimasisters.com
+domain: niijimasisters.com      # anything.<domain> that isn't listed here lands on the 404 Palace
 title: Niijima Network
 
-# The two halves of the split screen.
-# image.desktop  → used on landscape screens (left/right split)
-# image.mobile   → used on portrait screens (top/bottom split); falls back to desktop
-# focusX/focusY  → which point of the image stays in view when cropped (0–100 %)
-# scale          → zoom the art inside its half (1 = fit height)
-# offsetX/Y      → nudge the art in % of its half (handy for poses not facing the tear)
-# ready: false   → clicking shows a "not ready" calling card instead of navigating
+# The cut between the sisters: torn (ragged paper, white showing through) or clean (the guillotine bolt)
+edge: torn
+
+# Clicking a sister: network = slash into the menu with her selected · site = straight to her subdomain
+sisterOpens: network
+
+# The landing split. First = left (top on phones), second = right (bottom).
+#   status   online · soon (COMING SOON stamp, click shows the stamp instead of leaving)
+#   render   transparent PNG in /assets; a missing file just shows the placeholder slot
+#   renderFit: cover  → fills the slot (square bust-ups). Leave it out for full-body cutouts.
+#   renderFlip: true  → mirror so she faces the cut
 sisters:
-  makoto:
+  - id: makoto
     name: Makoto
-    surname: Niijima
-    codename: Queen
-    arcana: Priestess
-    tagline: Student Council President
-    url: https://makoto.niijimasisters.com
-    ready: false
-    accent: "#3f8cff"
-    image:
-      desktop: /assets/makoto.webp
-      mobile: /assets/makoto-mobile.webp
-      focusX: 50
-      focusY: 25
-      scale: 1
-      offsetX: 0
-      offsetY: 0
-  sae:
+    host: makoto.niijimasisters.com
+    status: soon
+    arcana: II
+    plates: [Codename · Queen, II · Priestess]
+    tagline: Council president. Strategist. Iron fist.
+    render: /assets/makoto-landing.png
+    renderFit: cover
+    renderFlip: true
+
+  - id: sae
     name: Sae
-    surname: Niijima
-    codename: Prosecutor
-    arcana: Judgement
-    tagline: Public Prosecutor
-    url: https://sae.niijimasisters.com
-    ready: false
-    accent: "#e7b544"
-    image:
-      desktop: /assets/sae.webp
-      mobile: /assets/sae-mobile.webp
-      focusX: 50
-      focusY: 25
-      scale: 1
-      offsetX: 0
-      offsetY: 0
+    host: sae.niijimasisters.com
+    status: soon
+    arcana: XX
+    glyph: "§"                   # giant watermark on her side
+    plates: [Public prosecutor, XX · Judgement]
+    tagline: The prosecution never rests.
+    render: /assets/sae-landing.png
+    renderFit: cover
 
-# Center emblem sitting on the tear. Leave empty for the placeholder.
-emblem: /assets/emblem.png
-
-# The "Take your time" loader.
-# type: sprite → horizontal strip of equally sized frames (works on every device)
-# type: video  → .webm/.mp4 (transparency won't survive on iPhone; sprite is safer)
-# type: none   → built-in placeholder spinner
+# "Take your time" — shown on first paint and between the shard wipe and leaving for a subdomain.
+#   type: sprite → horizontal strip of equal frames (works everywhere)
+#   type: video  → .webm/.mp4 (transparency won't survive on iPhone; sprite is safer)
+#   type: none   → spinning thief-star placeholder
 loader:
-  type: sprite
+  type: none
   src: /assets/loader.png
-  frames: 16          # frames in the strip
+  frames: 16
   fps: 24
-  size: 160           # displayed height in px (width keeps the frame ratio)
+  size: 160            # displayed height in px
   text: Take your time
-  minDuration: 900    # ms the loader stays up before navigating
+  minDuration: 900     # ms it stays up before navigating
 
-# In-game style calendar (top-left of the hub).
+# Date HUD in the Network screen (the in-game calendar). Weather from open-meteo.com — free, no key.
 calendar:
   timezone: Europe/Budapest
-  weather: true       # uses open-meteo.com (free, no key)
+  weather: true
   latitude: 47.4979
   longitude: 19.0402
 
-# Ping each service and show ONLINE / OFFLINE in the hub.
-statusChecks: true
+# ONLINE / OFFLINE in the Network menu.
+#   kuma: Uptime Kuma status-page JSON. Same-origin through Traefik is easiest (see docker-compose.example.yml):
+#         /api/status-page/heartbeat/niijima
+#         Entries with a monitorId get real up / down / pending / maintenance.
+#   ping: everything else that's 'online' gets a no-cors ping (answered = ONLINE, error/5 s timeout = DOWN).
+status:
+  kuma: ""
+  interval: 60
+  ping: true
 
-# Where the hub gets its list of services. Later this can point at /api/services
-# (Traefik/Docker label discovery) without touching the frontend.
+# UI sounds. Drop your files in /assets/sfx with these names (wav/ogg/mp3). Missing files are silent.
+sounds:
+  hover: /assets/sfx/hover.wav       # a sister's half lights up
+  move: /assets/sfx/move.wav         # menu cursor moves
+  confirm: /assets/sfx/confirm.wav   # something is chosen
+  slash: /assets/sfx/slash.wav       # shard transition into the Network
+  back: /assets/sfx/back.wav         # Esc / BACK
+  error: /assets/sfx/error.wav       # a coming-soon or locked entry
+soundVolume: 0.6
+
+# Where the menu list comes from. Can later point at an /api/services JSON endpoint.
 servicesSource: /config/services.yaml

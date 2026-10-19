@@ -1,16 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="phantom">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0b0b0b" />
-    <meta name="description" content="Niijima Network" />
+    <meta name="theme-color" content="#0b0b0d" />
+    <meta name="description" content="Niijima Network — Makoto, Sae, and everything running on niijimasisters.com" />
     <title>Niijima Network</title>
     <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <style>
+      /* before the bundle arrives: plain ink, no white flash */
+      html, body { margin: 0; height: 100%; background: #0b0b0d; }
+    </style>
   </head>
   <body>
-    <main id="app"></main>
-    <noscript>Niijima Network needs JavaScript.</noscript>
+    <main id="app" class="nj"></main>
+    <noscript>
+      <p style="color:#fff;font:16px/1.5 sans-serif;padding:24px">
+        Niijima Network needs JavaScript. Direct links:
+        <a style="color:#ffc61a" href="https://mementos.niijimasisters.com">Mementos</a> ·
+        <a style="color:#ffc61a" href="https://compendium.niijimasisters.com">Compendium</a>
+      </p>
+    </noscript>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

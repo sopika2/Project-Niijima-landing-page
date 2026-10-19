@@ -1,29 +1,9 @@
+// Runtime config: /config/site.yaml + the services list, fetched on every page load.
+// Edit the files (Docker mounts the folder) and reload — no rebuild. JSON is accepted too.
+// Older keys from the first version of this repo (name/subtitle/patron/ready/image.desktop) still work.
+
 import { parse } from "yaml";
-
-export type SisterId = "makoto" | "sae";
-
-export interface SisterImage {
-  desktop?: string;
-  mobile?: string;
-  focusX: number;
-  focusY: number;
-  scale: number;
-  offsetX: number;
-  offsetY: number;
-}
-
-export interface Sister {
-  id: SisterId;
-  name: string;
-  surname: string;
-  codename: string;
-  arcana: string;
-  tagline: string;
-  url: string;
-  ready: boolean;
-  accent: string;
-  image: SisterImage;
-}
+import type { NjConfig, NjEntry, NjSister, Status } from "./niijima/niijima.d";
 
 export interface LoaderConfig {
   type: "sprite" | "video" | "none";
@@ -38,84 +18,118 @@ export interface LoaderConfig {
 export interface SiteConfig {
   domain: string;
   title: string;
-  sisters: Record<SisterId, Sister>;
-  emblem?: string;
+  edge: "torn" | "clean";
+  sisterOpens: "network" | "site";
+  sisters: NjSister[];
   loader: LoaderConfig;
-  calendar: { timezone: string; weather: boolean; latitude: number; longitude: number };
-  statusChecks: boolean;
+  calendar: { timezone?: string; weather: boolean; latitude: number; longitude: number };
+  status: { kuma: string; interval: number; ping: boolean };
+  sounds: Record<string, string>;
+  soundVolume: number;
+  credit?: string;
   servicesSource: string;
 }
 
-export interface Service {
-  id: string;
-  name: string;
-  subtitle?: string;
-  url: string;
-  patron?: SisterId;
-  hidden?: boolean;
-  status?: boolean;
-}
+type Raw = Record<string, any>;
+const STATUSES: Status[] = ["online", "down", "pending", "maintenance", "soon", "locked"];
 
-const DEFAULT_SISTER = (id: SisterId): Sister => ({
-  id,
-  name: id === "makoto" ? "Makoto" : "Sae",
-  surname: "Niijima",
-  codename: id === "makoto" ? "Queen" : "Prosecutor",
-  arcana: id === "makoto" ? "Priestess" : "Judgement",
-  tagline: "",
-  url: "#",
-  ready: false,
-  accent: id === "makoto" ? "#3f8cff" : "#e7b544",
-  image: { focusX: 50, focusY: 25, scale: 1, offsetX: 0, offsetY: 0 },
-});
-
-async function fetchYaml<T>(url: string): Promise<T | null> {
+export async function fetchYaml<T = Raw>(url: string): Promise<T | null> {
   try {
     const res = await fetch(url, { cache: "no-cache" });
     if (!res.ok) return null;
     const text = await res.text();
-    // Accept JSON too, so /api/services can return plain JSON later.
-    return (url.endsWith(".json") || text.trimStart().startsWith("{") ? JSON.parse(text) : parse(text)) as T;
-  } catch {
+    return (url.endsWith(".json") || /^\s*[[{]/.test(text) ? JSON.parse(text) : parse(text)) as T;
+  } catch (err) {
+    console.warn(`[niijima] couldn't read ${url}:`, err);
     return null;
   }
 }
 
-export async function loadSite(): Promise<SiteConfig> {
-  const raw = (await fetchYaml<Partial<SiteConfig> & { sisters?: Record<string, Partial<Sister>> }>("/config/site.yaml")) ?? {};
-  const sister = (id: SisterId): Sister => {
-    const base = DEFAULT_SISTER(id);
-    const r: Partial<Sister> = raw.sisters?.[id] ?? {};
-    return { ...base, ...r, id, image: { ...base.image, ...(r.image ?? {}) } };
-  };
+const hostOf = (url?: string) => {
+  if (!url) return undefined;
+  try { return new URL(url, location.href).host; } catch { return undefined; }
+};
+const accentOf = (v: unknown) => (v === "makoto" || v === "sae" ? v : undefined);
+const statusOf = (v: unknown) => (STATUSES.includes(v as Status) ? (v as Status) : undefined);
+
+const SISTER_DEFAULTS: Record<string, Partial<NjSister>> = {
+  makoto: { name: "MAKOTO", accent: "makoto", arcana: "II", plates: ["Codename · Queen", "II · Priestess"], tagline: "Council president. Strategist. Iron fist.", renderFlip: true },
+  sae: { name: "SAE", accent: "sae", arcana: "XX", glyph: "§", plates: ["Public prosecutor", "XX · Judgement"], tagline: "The prosecution never rests." },
+};
+
+function sister(id: string, r: Raw, domain: string): NjSister {
+  const d = SISTER_DEFAULTS[id] ?? {};
+  const host = r.host ?? hostOf(r.url) ?? `${id}.${domain}`;
+  const legacyPlates = r.codename || r.arcana && !/^[0IVXL]+$/.test(r.arcana) ? [r.codename && `Codename · ${r.codename}`, r.arcana && `${d.arcana ?? ""} · ${r.arcana}`].filter(Boolean) : undefined;
   return {
-    domain: raw.domain ?? location.hostname,
+    ...d,
+    id,
+    name: String(r.name ?? d.name ?? id).toUpperCase(),
+    host,
+    url: r.url,
+    status: statusOf(r.status) ?? (r.ready === false ? "soon" : r.ready === true ? "online" : "soon"),
+    accent: accentOf(r.accent) ?? d.accent,
+    arcana: r.arcana && /^[0IVXL]+$/.test(r.arcana) ? r.arcana : d.arcana,
+    glyph: r.glyph ?? d.glyph,
+    plates: Array.isArray(r.plates) ? r.plates : legacyPlates ?? d.plates,
+    tagline: r.tagline ?? d.tagline,
+    render: r.render ?? r.image?.desktop,
+    renderFit: r.renderFit === "cover" ? "cover" : undefined,
+    renderFlip: r.renderFlip ?? d.renderFlip,
+  };
+}
+
+export async function loadSite(): Promise<SiteConfig> {
+  const raw: Raw = (await fetchYaml("/config/site.yaml")) ?? {};
+  const domain: string = raw.domain ?? location.hostname.replace(/^www\./, "");
+  const rs = raw.sisters ?? {};
+  const list: [string, Raw][] = Array.isArray(rs) ? rs.map((s: Raw) => [s.id, s]) : Object.entries(rs);
+  const sisters = (list.length ? list : [["makoto", {}], ["sae", {}]] as [string, Raw][]).slice(0, 2).map(([id, r]) => sister(id, r ?? {}, domain));
+  const st = raw.status ?? {};
+  return {
+    domain,
     title: raw.title ?? "Niijima Network",
-    sisters: { makoto: sister("makoto"), sae: sister("sae") },
-    emblem: raw.emblem || undefined,
-    loader: {
-      type: "none",
-      frames: 1,
-      fps: 24,
-      size: 160,
-      text: "Take your time",
-      minDuration: 900,
-      ...(raw.loader ?? {}),
+    edge: raw.edge === "clean" ? "clean" : "torn",
+    sisterOpens: raw.sisterOpens === "site" ? "site" : "network",
+    sisters,
+    loader: { type: "none", frames: 1, fps: 24, size: 160, text: "Take your time", minDuration: 900, ...(raw.loader ?? {}) },
+    calendar: { weather: false, latitude: 47.4979, longitude: 19.0402, ...(raw.calendar ?? {}) },
+    status: {
+      kuma: st.kuma ?? "",
+      interval: Math.max(15, Number(st.interval) || 60),
+      ping: st.ping ?? raw.statusChecks ?? true,
     },
-    calendar: {
-      timezone: "Europe/Budapest",
-      weather: false,
-      latitude: 47.4979,
-      longitude: 19.0402,
-      ...(raw.calendar ?? {}),
-    },
-    statusChecks: raw.statusChecks ?? true,
+    sounds: raw.sounds ?? {},
+    soundVolume: raw.soundVolume ?? 0.6,
+    credit: raw.credit,
     servicesSource: raw.servicesSource ?? "/config/services.yaml",
   };
 }
 
-export async function loadServices(source: string): Promise<Service[]> {
-  const raw = await fetchYaml<{ services?: Service[] } | Service[]>(source);
-  const list = Array.isArray(raw) ? raw : raw?.services ?? [];
-  return list.filter((s) => s && s.name && s.url && !s.hidden);
+export async function loadServices(source: string, domain: string): Promise<NjEntry[]> {
+  const raw = await fetchYaml<Raw>(source);
+  const list: Raw[] = Array.isArray(raw) ? raw : raw?.services ?? [];
+  return list
+    .filter((s) => s && !s.hidden && (s.label || s.name))
+    .map((s, i): NjEntry => ({
+      id: String(s.id ?? `entry-${i}`),
+      label: String(s.label ?? s.name),
+      host: s.host ?? hostOf(s.url) ?? (s.status === "locked" || !s.id ? undefined : `${s.id}.${domain}`),
+      url: s.url,
+      hint: s.hint ?? s.subtitle,
+      status: statusOf(s.status) ?? "online",
+      accent: accentOf(s.accent ?? s.patron),
+      monitorId: s.monitorId ?? null,
+      check: s.check ?? s.status !== false,
+      arcana: s.arcana,
+      arcanaName: s.arcanaName,
+      desc: s.desc ?? s.description,
+      render: s.render,
+      renderFit: s.renderFit === "cover" ? "cover" : undefined,
+      renderFlip: s.renderFlip,
+    }));
+}
+
+export function toNiijima(site: SiteConfig, network: NjEntry[]): NjConfig {
+  return { sisters: site.sisters, network, sounds: site.sounds, soundVolume: site.soundVolume, sisterOpens: site.sisterOpens };
 }

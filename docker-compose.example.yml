@@ -10,7 +10,7 @@ services:
     container_name: niijima-landing
     restart: unless-stopped
     volumes:
-      # Edit config and drop art in without rebuilding the image.
+      # Edit config and drop art / sounds in without rebuilding the image.
       - ./Project-Niijima-landing-page/public/config:/usr/share/nginx/html/config:ro
       - ./Project-Niijima-landing-page/public/assets:/usr/share/nginx/html/assets:ro
     labels:
@@ -29,3 +29,16 @@ services:
       - traefik.http.routers.landing-catchall.entrypoints=web
       - traefik.http.routers.landing-catchall.priority=1
       - traefik.http.routers.landing-catchall.service=landing
+
+  # ── Optional: live statuses from Uptime Kuma, same-origin (no CORS) ─────────────
+  # Put this label set on your existing Kuma container (service port 3001), then set
+  #   status.kuma: /api/status-page/heartbeat/<your status page slug>
+  # in config/site.yaml. Only the read-only status-page JSON is exposed on the root domain.
+  #
+  # uptime-kuma:
+  #   labels:
+  #     - traefik.http.routers.kuma-status.rule=Host(`niijimasisters.com`) && PathPrefix(`/api/status-page/heartbeat/`)
+  #     - traefik.http.routers.kuma-status.entrypoints=web
+  #     - traefik.http.routers.kuma-status.priority=100
+  #     - traefik.http.routers.kuma-status.service=kuma
+  #     - traefik.http.services.kuma.loadbalancer.server.port=3001
