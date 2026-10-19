@@ -114,7 +114,7 @@
   function uptimeHTML(up, total, live) {
     return '<span class="nj-uptime-hud__num"><b>' + up + '</b><i>/</i><b>' + total + '</b></span>' +
       '<span class="nj-uptime-hud__lbl">Online</span>' +
-      '<span class="nj-uptime-hud__src' + (live ? ' is-live' : '') + '">' + (live === 'ping' ? 'Ping' : live ? 'Live' : 'Config') + '</span>';
+      (live === true ? '<span class="nj-uptime-hud__src is-live">Live</span>' : '');
   }
 
   /* ───────── Sound: named UI cues, files supplied by the site (e.g. your own P5R rips) ───────── */
@@ -270,14 +270,26 @@
         if (c >= 51 && c <= 67) return 'Rain'; if (c >= 71 && c <= 77) return 'Snow'; if (c >= 80 && c <= 82) return 'Showers';
         if (c >= 85 && c <= 86) return 'Snow'; if (c >= 95) return 'Storm'; return 'Cloudy';
       };
-      fetch('https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(opts.weather.latitude) + '&longitude=' + encodeURIComponent(opts.weather.longitude) + '&current=weather_code,temperature_2m&timezone=auto')
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (j) {
-          var c = j && j.current; if (!c || typeof c.weather_code !== 'number') return;
-          var wx = make('span', 'nj-hud__wx');
-          wx.textContent = WX(c.weather_code).toUpperCase() + (typeof c.temperature_2m === 'number' ? ' ' + Math.round(c.temperature_2m) + '\u00b0' : '');
-          target.appendChild(wx);
-        })['catch'](function () {});
+      var key = 'nj-wx:' + opts.weather.latitude + ',' + opts.weather.longitude, cached = null;
+      try { cached = JSON.parse(window.localStorage.getItem(key) || 'null'); } catch (e) { /* storage blocked */ }
+      var paint = function (c) {
+        if (!c || typeof c.weather_code !== 'number') return false;
+        var wx = make('span', 'nj-hud__wx');
+        wx.textContent = WX(c.weather_code).toUpperCase() + (typeof c.temperature_2m === 'number' ? ' ' + Math.round(c.temperature_2m) + '\u00b0' : '');
+        target.appendChild(wx);
+        return true;
+      };
+      var age = cached && cached.t ? Date.now() - cached.t : Infinity;
+      if (age < 30 * 60000) paint(cached.c);
+      else {
+        fetch('https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(opts.weather.latitude) + '&longitude=' + encodeURIComponent(opts.weather.longitude) + '&current=weather_code,temperature_2m&timezone=auto')
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (j) {
+            var c = j && j.current;
+            if (paint(c)) { try { window.localStorage.setItem(key, JSON.stringify({ t: Date.now(), c: c })); } catch (e) { /* storage blocked */ } }
+            else if (age < 6 * 3600000) paint(cached.c);
+          })['catch'](function () { if (age < 6 * 3600000) paint(cached.c); });
+      }
     }
     return target;
   }
@@ -289,6 +301,7 @@
     var label = opts.label || target.getAttribute('data-label') || 'Render';
     target.classList.add('nj-slot');
     target.classList.remove('is-loaded');
+    target.classList.toggle('is-empty', !src);
     target.classList.toggle('nj-slot--cover', opts.fit === 'cover');
     target.classList.toggle('nj-slot--flip', !!opts.flip);
     target.innerHTML = '<span class="nj-slot__ph" aria-hidden="true"><span class="nj-slot__big">Render</span>' +
@@ -298,7 +311,11 @@
       img.alt = opts.alt || '';
       img.decoding = 'async';
       img.onload = function () { target.classList.add('is-loaded'); };
-      img.onerror = function () { img.remove(); };
+      img.onerror = function () {
+        if (/\.webp(\?|$)/i.test(img.src) && !img.dataset.fallback) { img.dataset.fallback = '1'; img.src = img.src.replace(/\.webp(\?|$)/i, '.png$1'); return; }
+        img.remove();
+        target.classList.add('is-empty');
+      };
       img.src = src;
       target.appendChild(img);
     }
@@ -479,7 +496,7 @@
         '<span class="nj-half__info"><span class="nj-half__name"></span><span class="nj-half__meta">' + plates + '</span>' +
           (s.tagline ? '<span class="nj-half__tag">' + esc(s.tagline) + '</span>' : '') + '</span>' +
         '<span class="nj-half__foot"><span class="nj-half__stamp">' + (st === 'online' ? '' : stampHTML(st)) + '</span><span class="nj-half__host">' + esc(hostOf(s)) + '</span>' +
-          buttonHTML(s.cta || 'Enter', { span: true, variant: side === 'a' ? 'on-makoto' : 'on-sae' }) + '</span>' +
+          buttonHTML(s.cta || (st === 'soon' ? 'Peek' : 'Enter'), { span: true, variant: side === 'a' ? 'on-makoto' : 'on-sae' }) + '</span>' +
       '</span><span class="nj-half__veil" aria-hidden="true"></span></a>';
   }
 
@@ -505,6 +522,7 @@
 
   /* ───────── NetworkMenu ───────── */
   var TILTS = [-2, 1.5, -1, 2, -2.5, 1];
+  var SIZES = [1, .88, 1.05, .92, .84, .97];
   var TILESET = { makoto: ['ink', 'red', 'paper'], sae: ['ink', 'red', 'gold'], locked: ['ink', 'paper'] };
   function itemLabel(item, status) {
     return item.label + ' — ' + hostOf(item) + (STAMPS[status] && status !== 'online' ? ' (' + STAMPS[status].toLowerCase() + ')' : '');
@@ -512,12 +530,13 @@
   function menuItemHTML(item, i, status) {
     status = status || item.status;
     var locked = status === 'locked';
-    var inner = '<span class="nj-menu__label">' + esc(locked ? '???' : item.label) + '</span><span class="nj-menu__ransom" aria-hidden="true"></span>';
+    var inner = '<span class="nj-menu__label">' + esc(locked ? '???' : item.label) + '</span><span class="nj-menu__ransom" aria-hidden="true"></span>' +
+      (locked ? '<span class="nj-menu__lock" aria-hidden="true">Classified</span>' : '');
     var cls = 'nj-menu__item' + (locked ? ' is-locked' : '') + (item.accent ? ' is-' + item.accent : '');
     var el = locked
       ? '<button type="button" class="' + cls + '" data-i="' + i + '" aria-disabled="true" aria-label="Locked: ' + esc(item.hint || 'unknown destination') + '">' + inner + '</button>'
       : '<a class="' + cls + '" data-i="' + i + '" href="' + esc(urlOf(item)) + '" aria-label="' + esc(itemLabel(item, status)) + '">' + inner + '</a>';
-    return '<li class="nj-menu__li" style="--i:' + i + ';--r:' + TILTS[i % TILTS.length] + 'deg">' + el + '</li>';
+    return '<li class="nj-menu__li" style="--i:' + i + ';--r:' + TILTS[i % TILTS.length] + 'deg;--s:' + SIZES[i % SIZES.length] + '">' + el + '</li>';
   }
   function portalHTML(item, i) {
     var locked = item.status === 'locked';
@@ -576,6 +595,7 @@
     var btns = [].slice.call(target.querySelectorAll('.nj-menu__item'));
     var jitter = rng('menu');
     var active = -1, base = null, boilTimer = 0, running = true, lastPT = 'mouse', downActive = -1, hudKey = '';
+    var entered = !opts.deferRenders;
 
     /* selection plate: three layered polygons, the front one ending in a dagger point */
     function J(a) { return (jitter() * 2 - 1) * a; }
@@ -656,9 +676,14 @@
       var it = items[i];
       setSlotShadows(dslot, statusOf(i) === 'locked' ? 'none' : it.accent);
       if (running && !reduced()) restart(dslot, 'is-in');
-      slot(dslot, { src: it.render || '', label: (statusOf(i) === 'locked' ? 'Locked' : it.label) + ' · menu render', load: opts.renders !== false, fit: it.renderFit, flip: it.renderFlip });
+      paintSlot();
       place(true);
       window.requestAnimationFrame(function () { place(false); });
+    }
+    function paintSlot() {
+      var it = items[active];
+      dslot.setAttribute('data-arc', it.arcana || '?');
+      slot(dslot, { src: it.render || '', label: (statusOf(active) === 'locked' ? 'Locked' : it.label) + ' · menu render', load: opts.renders !== false && entered, fit: it.renderFit, flip: it.renderFlip });
     }
     function step(d) {
       var n = items.length, i = ((active < 0 ? 0 : active) + d + n) % n;
@@ -717,7 +742,7 @@
       confirm: confirm,
       statusOf: function (id) { for (var i = 0; i < items.length; i++) if (items[i].id === id) return statusOf(i); return null; },
       setStatuses: setStatuses,
-      enter: function (focus) { running = true; place(true); startBoil(); if (focus) focusQuiet(btns[active]); },
+      enter: function (focus) { running = true; if (!entered) { entered = true; paintSlot(); } place(true); startBoil(); if (focus) focusQuiet(btns[active]); },
       leave: function () { running = false; stopBoil(); }
     };
   }
@@ -728,7 +753,7 @@
     cfg = cfg || Niijima.demo;
     var useHistory = opts.history !== false;
     target.classList.add('nj', 'nj-home');
-    target.innerHTML = '<div class="nj-stage"><section class="nj-screen nj-home__landing" id="top" aria-label="Choose a sister" tabindex="-1"></section>' +
+    target.innerHTML = '<div class="nj-stage"><h1 class="nj-sr">' + esc(opts.title || 'Niijima Sisters') + '</h1><section class="nj-screen nj-home__landing" id="top" aria-label="Choose a sister" tabindex="-1"></section>' +
       '<section class="nj-screen nj-home__net" id="network" aria-label="The Niijima Network" tabindex="-1"></section></div>';
     var stage = target.querySelector('.nj-stage');
     var DESIGN = opts.design || [1440, 900];
@@ -763,7 +788,7 @@
       toNetwork({ select: s.id, title: s.name, accent: s.accent });
     }
     var landCtl = landing(land, cfg.sisters, Object.assign({}, opts, { onPick: pick, onCue: function () { sfx.play('confirm'); toNetwork(); } }));
-    var netCtl = network(netEl, cfg.network, Object.assign({}, opts, { onBack: back }));
+    var netCtl = network(netEl, cfg.network, Object.assign({ deferRenders: true }, opts, { onBack: back }));
 
     function hashScreen() { return location.hash === '#network' ? 'network' : 'top'; }
     function show(name, initial) {

@@ -15,7 +15,8 @@ sisterOpens: network
 
 # The landing split. First = left (top on phones), second = right (bottom).
 #   status   online · soon (COMING SOON stamp, click shows the stamp instead of leaving)
-#   render   transparent PNG in /assets; a missing file just shows the placeholder slot
+#   render   transparent WebP or PNG in /assets; a missing .webp falls back to the .png of the same name,
+#            and a missing file just shows the placeholder slot
 #   renderFit: cover  → fills the slot (square bust-ups). Leave it out for full-body cutouts.
 #   renderFlip: true  → mirror so she faces the cut
 sisters:
@@ -26,7 +27,7 @@ sisters:
     arcana: II
     plates: [Codename · Queen, II · Priestess]
     tagline: Council president. Strategist. Iron fist.
-    render: /assets/makoto-landing.png
+    render: /assets/makoto-landing.webp
     renderFit: cover
     renderFlip: true
 
@@ -38,7 +39,7 @@ sisters:
     glyph: "§"                   # giant watermark on her side
     plates: [Public prosecutor, XX · Judgement]
     tagline: The prosecution never rests.
-    render: /assets/sae-landing.png
+    render: /assets/sae-landing.webp
     renderFit: cover
 
 # "Take your time" — shown on first paint and between the shard wipe and leaving for a subdomain.

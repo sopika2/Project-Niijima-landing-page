@@ -364,7 +364,8 @@
 
 /* phones and tall screens: top / bottom */
 .nj-split[data-orient="h"] .nj-half__name { --nj-ransom-size: clamp(34px, min(7cqh, 11cqw), 80px); }
-.nj-split[data-orient="h"] .nj-half__tag { display: none; }
+.nj-split[data-orient="h"] .nj-half__tag { max-width: 21ch; font-size: 15px; line-height: 20px; }
+@container (max-height: 740px) { .nj-split[data-orient="h"] .nj-half__tag { display: none; } }
 .nj-split[data-orient="h"] .nj-half__meta { gap: 8px; }
 .nj-split[data-orient="h"] .nj-half__info { gap: 10px; }
 .nj-split[data-orient="h"] .nj-plate { font-size: 12px; padding: 5px 10px 4px; }
@@ -375,13 +376,14 @@
 .nj-split[data-orient="h"] .nj-slot__label b { display: none; }
 .nj-split[data-orient="h"] .nj-slot__ph { padding: 10px; }
 .nj-split[data-orient="h"] .nj-half--a .nj-half__info { left: 5cqw; top: 12.5cqh; max-width: 90cqw; }
-.nj-split[data-orient="h"] .nj-half--a .nj-half__foot { left: 5cqw; top: 28.5cqh; flex-direction: column; align-items: flex-start; gap: 12px; }
-.nj-split[data-orient="h"] .nj-half--a .nj-half__slot { right: 2cqw; width: 46cqw; top: 3cqh; height: 33cqh; }
-.nj-split[data-orient="h"] .nj-half--b .nj-half__info { right: 5cqw; top: 59cqh; max-width: 62cqw; align-items: flex-end; }
+.nj-split[data-orient="h"] .nj-half--a .nj-half__foot { left: 5cqw; top: 37cqh; }
+/* the renders fill their half and sit behind the text, which all has its own backing */
+.nj-split[data-orient="h"] .nj-half--a .nj-half__slot { right: -10cqw; width: 66cqw; top: 6cqh; height: 44cqh; }
+.nj-split[data-orient="h"] .nj-half--b .nj-half__info { right: 5cqw; top: 56cqh; max-width: 62cqw; align-items: flex-end; text-align: right; }
 .nj-split[data-orient="h"] .nj-half--b .nj-half__meta { justify-content: flex-end; }
 .nj-split[data-orient="h"] .nj-half--b .nj-half__name { transform-origin: 100% 50%; }
-.nj-split[data-orient="h"] .nj-half--b .nj-half__foot { right: 5cqw; bottom: 13cqh; flex-direction: row-reverse; }
-.nj-split[data-orient="h"] .nj-half--b .nj-half__slot { left: 2cqw; width: 46cqw; top: 58cqh; bottom: 9cqh; }
+.nj-split[data-orient="h"] .nj-half--b .nj-half__foot { right: 5cqw; bottom: 11cqh; flex-direction: row-reverse; }
+.nj-split[data-orient="h"] .nj-half--b .nj-half__slot { left: -10cqw; width: 66cqw; top: 53cqh; bottom: 0; }
 .nj-split[data-orient="h"] .nj-half--b .nj-slot__ph { justify-content: flex-start; }
 .nj-split[data-orient="h"] .nj-half__numeral { font-size: 62cqh; }
 .nj-split[data-orient="h"] .nj-half--b .nj-half__numeral { font-size: 56cqh; bottom: -8cqh; }
@@ -485,12 +487,13 @@
 .nj-menu { --mfs: clamp(26px, min(4.5cqw, 7cqh), 76px); position: absolute; z-index: 3; left: clamp(16px, 4cqw, 64px); top: clamp(140px, 22cqh, 220px); width: min(52%, 760px); }
 /* rows never move when the selection changes (moving rows under the cursor made clicks land on the wrong item) */
 .nj-menu__list { position: relative; z-index: 1; list-style: none; margin: 0; padding: 0; }
-.nj-menu__li { transform: translateX(calc(var(--i, 0) * 2.3cqw)) rotate(var(--r, 0deg)); transform-origin: 0 50%; }
+.nj-menu__li { display: flex; align-items: center; height: calc(var(--mfs) * 1.06); transform: translateX(calc(var(--i, 0) * 2.3cqw)) rotate(var(--r, 0deg)); transform-origin: 0 50%; }
+/* every row has the same height, so the per-line sizes (--s) only change the lettering, never the spacing */
 .nj-menu__li + .nj-menu__li { margin-top: calc(var(--mfs) * .44); }
 .nj-menu__item {
   position: relative; display: inline-flex; align-items: center; gap: .26em;
   padding: .06em .22em .02em .12em;
-  font: 400 var(--mfs, 40px)/.98 var(--font-display); letter-spacing: .01em; text-transform: uppercase;
+  font: 400 calc(var(--mfs, 40px) * var(--s, 1))/.98 var(--font-display); letter-spacing: .01em; text-transform: uppercase;
   color: var(--paper); -webkit-text-stroke: .055em var(--ink); paint-order: stroke fill; text-shadow: .06em .06em 0 var(--ink);
   transform: skewX(-8deg); transform-origin: 0 50%; transition: transform .14s var(--nj-snap), color .05s;
 }
@@ -499,6 +502,12 @@
   color: var(--locked); background: var(--ink); padding: 0 .12em; text-shadow: none; -webkit-text-stroke: 0;
   clip-path: polygon(0 6%, 100% 0, 98% 100%, 2% 94%);
 }
+.nj-menu__lock {
+  align-self: center; padding: .3em .5em .2em; border: 2px dashed var(--locked);
+  font: 700 max(10px, .17em)/1 var(--font-body); letter-spacing: .16em; color: var(--locked); background: var(--ink);
+  -webkit-text-stroke: 0; text-shadow: none; transform: rotate(-7deg);
+}
+.nj-menu__item.is-active .nj-menu__lock { color: var(--paper); border-color: var(--paper); }
 .nj-menu__item.is-active { color: var(--ink); text-shadow: none; -webkit-text-stroke: 0; transform: rotate(-3deg) skewX(-6deg); }
 .nj-menu__item.is-active .nj-menu__label { display: none; }
 .nj-menu__ransom { --nj-ransom-size: 1.05em; display: none; margin-block: -.1em; }
@@ -519,6 +528,13 @@
 @keyframes nj-bust-in { from { opacity: 0; transform: translateX(9%) skewX(-6deg); } }
 .nj-detail__slot { width: 85%; height: 95%; right: -5%; bottom: -5%; --slot-line: transparent; --slot-shadow-1: var(--thief-red); --slot-shadow-2: var(--paper); }
 .nj-detail__slot .nj-slot__ph { justify-content: flex-start; padding-top: 22%; }
+/* no art for this entry: its arcana numeral stands in, outlined like the ghost NETWORK */
+.nj-detail__slot.is-empty .nj-slot__ph { display: none; }
+.nj-detail__slot.is-empty::after {
+  content: attr(data-arc); position: absolute; right: 12%; top: 6%;
+  font: 400 clamp(160px, 46cqh, 420px)/.8 var(--font-display); letter-spacing: -.02em;
+  color: transparent; -webkit-text-stroke: 3px var(--paper); opacity: .22; transform: rotate(-8deg);
+}
 
 /* the speech box: a skewed quadrilateral with a tail pointing at the render */
 .nj-speech {

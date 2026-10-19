@@ -10,7 +10,9 @@ The page is a locked, non-scrolling two-screen game menu on desktop and phone.
   a comic speech box with each entry's card and bust-up, the in-game **calendar with weather**,
   and an **ONLINE x/y** counter fed by Uptime Kuma or, without it, a ping of every live entry.
 - **Shard wipes** between screens and **"Take your time"** before leaving for a subdomain (and on first paint).
-- **404 Palace** — any unknown subdomain (Traefik's wildcard catch-all) or path: "This Palace doesn't exist".
+- **404 Palace** — any unknown subdomain (Traefik's wildcard catch-all) or path: "This Palace doesn't exist", served
+  with a real 404 status. A subdomain that *is* in the config gets a kinder version: "isn't open yet" for `soon` / `locked`
+  entries, "sealed off" for an `online` one whose own router isn't answering.
 - **Sounds** — your own files for hover / move / confirm / slash / back / error, with a Sound on/off toggle.
 - **YAML config** read at runtime. Edit, reload, done.
 
@@ -39,10 +41,10 @@ Keys from the first version of this repo (`name`, `subtitle`, `patron`, `ready`,
 
 - **Uptime Kuma** (real up / down / pending / maintenance): set `status.kuma` to your status page's
   `/api/status-page/heartbeat/<slug>` and give entries a `monitorId`. Easiest same-origin via Traefik —
-  see the commented block in `docker-compose.example.yml`. The badge says **LIVE**.
+  see the commented block in `docker-compose.example.yml`. The counter gets a blinking **LIVE** badge.
 - **Ping fallback** (`status.ping: true`): every `online` entry without Kuma data gets a no-cors request.
   The browser can't read cross-origin status codes, so it only knows "answered" (ONLINE) vs.
-  "network error / 5 s timeout" (DOWN). The badge says **PING**. With neither, it says **CONFIG**.
+  "network error / 5 s timeout" (DOWN). No badge: it's a good guess, not a monitor.
 
 ## Art and sounds — `public/assets/`
 
@@ -57,7 +59,11 @@ npm run dev        # http://localhost:5173
 npm run build      # → dist/
 ```
 
-Preview URLs: `/?view=network` (straight into the menu) · `/?preview=loader` (loader stays up) · `/?preview=404`.
+Preview URLs: `/?view=network` (straight into the menu) · `/?preview=loader` (loader stays up) · `/?preview=404` ·
+`/?preview=soon` (first `soon` entry's "isn't open yet") · `/?preview=down` (first `online` entry's "sealed off").
+
+The weather in the calendar is cached in each visitor's browser for 30 minutes (and the last reading is kept for
+6 hours if open-meteo refuses), so the free API isn't hit on every page load.
 
 ## Deploy (Docker + nginx + Traefik)
 

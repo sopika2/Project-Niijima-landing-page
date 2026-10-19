@@ -4,7 +4,7 @@ import "./niijima/niijima.js";
 import "./site.css";
 import { loadServices, loadSite, toNiijima } from "./config";
 import { createLoader } from "./loader";
-import { createNotFound } from "./notfound";
+import { createNotFound, type PalaceKind } from "./notfound";
 import { startStatus } from "./status";
 
 async function boot() {
@@ -23,11 +23,24 @@ async function boot() {
   const isSubdomain = host.endsWith(`.${site.domain}`) && host !== `www.${site.domain}`;
   const isUnknownPath = !["/", "/index.html"].includes(location.pathname);
 
-  if (preview === "404" || isSubdomain || isUnknownPath) {
+  if (preview === "404" || preview === "soon" || preview === "down" || isSubdomain || isUnknownPath) {
     const rootUrl = host === site.domain || isSubdomain ? `https://${site.domain}/` : "/";
+    // A host from the config isn't a missing Palace: it's either not open yet or not answering.
+    let kind: PalaceKind = "missing";
+    let name = "";
+    if (isSubdomain || preview === "soon" || preview === "down") {
+      const network = await loadServices(site.servicesSource, site.domain);
+      const sisters = site.sisters.map((s) => ({ ...s, label: s.name.charAt(0) + s.name.slice(1).toLowerCase() }));
+      const want = preview === "soon" ? "soon" : preview === "down" ? "online" : null;
+      const known = [...sisters, ...network].find((e) => (want ? e.status === want : e.host === host));
+      if (known) {
+        name = known.label;
+        kind = known.status === "soon" || known.status === "locked" ? "soon" : "down";
+      }
+    }
     app.className = "nj-page nj-page--palace";
-    app.append(createNotFound(isSubdomain ? host : `${host}${location.pathname}`, rootUrl));
-    document.title = `404 · ${site.title}`;
+    app.append(createNotFound(isSubdomain ? host : `${host}${location.pathname}`, rootUrl, kind, name));
+    document.title = `${kind === "missing" ? "404" : kind === "soon" ? "Coming soon" : "Offline"} · ${site.title}`;
     await settle(firstShow);
     await loader.hide();
     return;
