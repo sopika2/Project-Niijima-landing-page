@@ -70,6 +70,17 @@ function mountFigure(el: HTMLElement, cfg: LoaderConfig) {
     el.style.backgroundImage = "";
     el.innerHTML = `<svg viewBox="0 0 100 100"><polygon points="50,3 61,37 97,37 68,59 79,95 50,73 21,95 32,59 3,37 39,37"/></svg>`;
   };
+  // A GIF (or animated WebP/APNG) plays as-is. Also picked up when a .gif is given with type: sprite.
+  if (cfg.src && (cfg.type === "image" || cfg.type === "gif" || /\.gif(\?|$)/i.test(cfg.src))) {
+    const img = new Image();
+    img.alt = "";
+    img.decoding = "async";
+    img.onerror = placeholder;
+    img.src = cfg.src;
+    el.classList.add("nj-loader__figure--image");
+    el.append(img);
+    return;
+  }
   if (cfg.type === "video" && cfg.src) {
     const v = document.createElement("video");
     Object.assign(v, { src: cfg.src, autoplay: true, loop: true, muted: true, playsInline: true });

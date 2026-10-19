@@ -49,6 +49,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--ink); 
 
 .nj-loader__figure { --size: 160px; height: var(--size); aspect-ratio: var(--ratio, 1); flex: none; }
 .nj-loader__figure video { height: 100%; width: auto; display: block; }
+.nj-loader__figure--image { aspect-ratio: auto; }
+.nj-loader__figure--image img { height: 100%; width: auto; display: block; image-rendering: auto; }
 .nj-loader__figure--sprite {
   width: calc(var(--size) * var(--ratio, 1));
   background-repeat: no-repeat; background-size: calc(var(--frames, 1) * 100%) 100%;

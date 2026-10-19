@@ -42,6 +42,7 @@ sisters:
     renderFit: cover
 
 # "Take your time" — shown on first paint and between the shard wipe and leaving for a subdomain.
+#   type: image  → a GIF / animated WebP, played as-is (e.g. /assets/loader.gif)
 #   type: sprite → horizontal strip of equal frames (works everywhere)
 #   type: video  → .webm/.mp4 (transparency won't survive on iPhone; sprite is safer)
 #   type: none   → spinning thief-star placeholder
