@@ -52,6 +52,10 @@ export interface Service {
   subtitle?: string;
   url: string;
   patron?: SisterId;
+  /** Image shown in the hub while this item is highlighted. Falls back to the patron's art. */
+  pose?: string;
+  /** One-line description shown in the callout bubble. */
+  description?: string;
   hidden?: boolean;
   status?: boolean;
 }

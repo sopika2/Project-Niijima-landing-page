@@ -1,0 +1,73 @@
+/* ═════════ "Take your time" loader ═══════════════════════════ */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  visibility: hidden;
+  background: var(--black);
+  clip-path: polygon(120% 0, 140% 0, 120% 100%, 100% 100%);
+}
+.loader::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.07) 24%, transparent 26%);
+  background-size: 14px 14px;
+  -webkit-mask-image: linear-gradient(315deg, #000, transparent 60%);
+  mask-image: linear-gradient(315deg, #000, transparent 60%);
+}
+.loader.is-visible {
+  visibility: visible;
+  clip-path: polygon(-30% 0, 140% 0, 120% 100%, -50% 100%);
+  transition: clip-path 0.38s var(--ease-snap);
+}
+.loader.is-leaving {
+  clip-path: polygon(-30% 0, -10% 0, -30% 100%, -50% 100%);
+  transition: clip-path 0.42s var(--ease-snap);
+}
+.loader__wipe {
+  position: absolute;
+  inset: 0;
+  background: var(--red);
+  clip-path: polygon(76% 100%, 100% 70%, 100% 78%, 83% 100%);
+}
+.loader__corner {
+  position: absolute;
+  right: calc(3.5vw + var(--safe-r));
+  bottom: calc(3.5vh + var(--safe-b));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+.loader__figure {
+  height: var(--size, 160px);
+  width: var(--size, 160px);
+}
+.loader__figure video { width: 100%; height: 100%; object-fit: contain; }
+.loader__figure--sprite {
+  width: calc(var(--size, 160px) * var(--ratio, 1));
+  background-repeat: no-repeat;
+  background-size: calc(var(--frames, 1) * 100%) 100%;
+  animation: sprite var(--dur, 0.7s) steps(var(--frames, 1), jump-none) infinite;
+}
+.loader__figure--placeholder {
+  display: grid;
+  place-items: center;
+}
+.loader__figure--placeholder svg {
+  width: 62%;
+  fill: var(--white);
+  stroke: var(--black);
+  stroke-width: 6;
+  paint-order: stroke;
+  filter: drop-shadow(4px 4px 0 var(--red));
+  animation: spin 1s linear infinite;
+}
+.loader__text {
+  font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+  transform: rotate(-4deg);
+}
+@media (max-width: 760px) {
+  .loader__figure { --size: 110px !important; }
+}

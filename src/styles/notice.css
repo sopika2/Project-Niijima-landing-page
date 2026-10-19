@@ -1,0 +1,33 @@
+/* ═════════ Calling-card notice ═══════════════════════════════ */
+.card {
+  position: fixed;
+  z-index: 50;
+  left: 50%;
+  bottom: calc(6vh + var(--safe-b));
+  width: min(30rem, 90vw);
+  padding: 1.5rem 1.4rem 1.1rem;
+  background: var(--white);
+  color: var(--black);
+  border: var(--outline) solid var(--black);
+  box-shadow: 0.55rem 0.55rem 0 var(--accent, var(--red));
+  translate: -50% 0;
+  transform: translateY(160%) rotate(-3deg);
+  transition: transform 0.35s var(--ease-pop), opacity 0.25s;
+  cursor: pointer;
+}
+.card.is-in { transform: translateY(0) rotate(-3deg); }
+.card.is-out { transform: translateY(160%) rotate(-3deg); opacity: 0; }
+.card__title {
+  position: absolute;
+  top: -1.2rem;
+  left: 0.8rem;
+  font-size: 1.7rem;
+  transform: rotate(-4deg);
+}
+.card__body {
+  margin: 0;
+  font-family: var(--f-condensed);
+  font-weight: 500;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}

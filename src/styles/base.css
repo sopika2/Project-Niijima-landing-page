@@ -1,0 +1,128 @@
+:root {
+  --red: #e5191c;
+  --red-hot: #ff2a2d;
+  --red-deep: #8f0a0e;
+  --black: #000;
+  --ink: #141414;
+  --white: #fff;
+  --paper: #efeadf;
+  --online: #3ddc84;
+
+  --f-display: "Anton", "Bebas Neue", Impact, sans-serif;
+  --f-heavy: "Archivo Black", "Anton", sans-serif;
+  --f-condensed: "Oswald", "Bebas Neue", sans-serif;
+  --f-serif: "Playfair Display", Georgia, serif;
+  --f-mono: "Rubik Mono One", "Archivo Black", sans-serif;
+
+  /* Snaps with a slight overshoot — nothing in this UI glides. */
+  --ease-snap: cubic-bezier(0.7, 0, 0.2, 1);
+  --ease-pop: cubic-bezier(0.2, 0.9, 0.3, 1.35);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-tear: 0.55s;
+
+  /* Hard outline used on every cut-out element */
+  --outline: 0.22rem;
+
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* No scrolling, no rubber-banding, ever. */
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--f-condensed);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button,
+a {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--white);
+  outline-offset: 3px;
+}
+
+/* Screen-tone dot field. Set --dot, --dot-size, --dot-dir on the element. */
+.side__halftone,
+.hub__halftone,
+.palace__halftone {
+  position: absolute;
+  inset: -10%;
+  background-image: radial-gradient(circle, var(--dot, rgba(0, 0, 0, 0.35)) 24%, transparent 26%);
+  background-size: var(--dot-size, 14px) var(--dot-size, 14px);
+  -webkit-mask-image: linear-gradient(var(--dot-dir, 125deg), #000 0%, transparent 70%);
+  mask-image: linear-gradient(var(--dot-dir, 125deg), #000 0%, transparent 70%);
+}
+
+/* Character art: white rim + hard black shadow, like a cut-out pasted on the page. */
+.cutout {
+  filter:
+    drop-shadow(var(--outline) 0 0 var(--white))
+    drop-shadow(calc(var(--outline) * -1) 0 0 var(--white))
+    drop-shadow(0 var(--outline) 0 var(--white))
+    drop-shadow(0 calc(var(--outline) * -1) 0 var(--white))
+    drop-shadow(0.9rem 0.7rem 0 var(--black));
+}
+
+/* Placeholder for art that hasn't been dropped in yet */
+.placeholder {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  translate: -50% 0;
+  height: 86%;
+  aspect-ratio: 2 / 3;
+  max-width: 88%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border: 3px dashed rgba(255, 255, 255, 0.6);
+  border-bottom: 0;
+  background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0 12px, transparent 12px 24px);
+  font-family: var(--f-condensed);
+  text-align: center;
+  padding: 1rem;
+}
+.placeholder span {
+  font-size: clamp(0.9rem, 1.5vw, 1.15rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.placeholder code {
+  font-size: 0.75rem;
+  opacity: 0.75;
+  word-break: break-all;
+}

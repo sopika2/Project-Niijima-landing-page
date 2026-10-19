@@ -9,6 +9,7 @@ Anything missing shows a labelled placeholder, so the page works before the art 
 | `sae.webp` | Sae, desktop | Same, right half. |
 | `makoto-mobile.webp` | Makoto, phone | Optional. Wider crop (~1200×900) for the top half. Falls back to the desktop image. |
 | `sae-mobile.webp` | Sae, phone | Optional. Same, bottom half. |
+| `poses/<service>.webp` | Hub poses | One per menu item, e.g. `poses/mementos.webp`. Transparent, same size as the desktop art. Set per item with `pose:` in `services.yaml`; missing ones fall back to that item's patron sister. |
 | `emblem.png` | Center emblem | Optional. Square, transparent. Sits inside the round badge on the tear. |
 | `loader.png` | "Take your time" figure | Horizontal sprite strip, all frames the same size. Set `frames` and `fps` in `site.yaml`. Or use a video with `type: video`. |
 

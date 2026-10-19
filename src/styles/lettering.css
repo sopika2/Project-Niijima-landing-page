@@ -1,0 +1,57 @@
+/* ═════════ Collage lettering ═════════════════════════════════
+   Each letter is cut from a different "source": its own font, colour and
+   irregular tile. Each word is then pasted as one sticker with a thick
+   black outline and a hard offset shadow.                              */
+
+.ransom {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.14em 0.36em;
+  line-height: 1;
+}
+
+.ransom__word {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  /* Outline the whole word in black, then drop a hard shadow under it. */
+  filter:
+    drop-shadow(0.055em 0 0 var(--black))
+    drop-shadow(-0.055em 0 0 var(--black))
+    drop-shadow(0 0.055em 0 var(--black))
+    drop-shadow(0 -0.055em 0 var(--black))
+    drop-shadow(0.09em 0.09em 0 var(--shadow, var(--black)));
+}
+
+.ransom__ch {
+  position: relative;
+  isolation: isolate;
+  display: inline-block;
+  margin-inline: -0.035em; /* tiles overlap slightly, like pasted paper */
+  padding: 0.06em 0.13em 0.04em;
+  font-size: calc(1em * var(--sz, 1));
+  color: var(--fg);
+  transform: translateY(var(--dy, 0)) rotate(var(--rot, 0deg));
+}
+/* The tile is a separate layer so its irregular cut never clips the glyph. */
+.ransom__ch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--tile);
+  clip-path: var(--cut, none);
+}
+
+.ransom__ch--v0 { --tile: var(--white); --fg: var(--black); font-family: var(--f-display); }
+.ransom__ch--v1 { --tile: var(--black); --fg: var(--white); font-family: var(--f-serif); font-weight: 900; }
+.ransom__ch--v2 { --tile: var(--red); --fg: var(--white); font-family: var(--f-heavy); }
+.ransom__ch--v3 { --tile: var(--black); --fg: var(--white); font-family: var(--f-display); padding-inline: 0.09em; }
+.ransom__ch--v4 { --tile: var(--white); --fg: var(--black); font-family: var(--f-mono); font-size: calc(0.76em * var(--sz, 1)); }
+.ransom__ch--v5 { --tile: var(--black); --fg: var(--red); font-family: var(--f-condensed); font-weight: 700; }
+.ransom__ch--v6 { --tile: var(--white); --fg: var(--red); font-family: var(--f-serif); font-weight: 900; }
+
+/* "dark" palette sits on red backgrounds — no red-on-red tiles. */
+.ransom--dark .ransom__ch--v2 { --tile: var(--white); --fg: var(--red); }
+.ransom--dark .ransom__ch--v5 { --tile: var(--black); --fg: var(--white); }

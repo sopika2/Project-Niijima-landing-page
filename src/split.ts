@@ -183,6 +183,7 @@ function side(s: Sister) {
       const img = new Image();
       img.alt = `${s.name} Niijima`;
       img.decoding = "async";
+      img.className = "cutout";
       img.onload = () => {
         if (shownFor !== orient) return;
         frame.classList.remove("is-placeholder");

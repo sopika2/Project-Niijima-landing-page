@@ -1,0 +1,462 @@
+/* ═════════ Hub ═══════════════════════════════════════════════
+   Patron sister fills the left; the menu stairs down the right.
+   The highlighted item turns into collage lettering on a jagged,
+   pulsing backing; the figure and callout snap to match it.       */
+
+.hub {
+  --accent: var(--red);
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  visibility: hidden;
+  overflow: hidden;
+  clip-path: polygon(120% 0, 140% 0, 120% 100%, 100% 100%);
+  transition: clip-path 0.42s var(--ease-snap), visibility 0s 0.42s;
+}
+.hub.is-open {
+  visibility: visible;
+  clip-path: polygon(-30% 0, 140% 0, 120% 100%, -50% 100%);
+  transition: clip-path 0.42s var(--ease-snap), visibility 0s;
+}
+.hub.is-closing {
+  visibility: visible;
+  clip-path: polygon(-30% 0, -10% 0, -30% 100%, -50% 100%);
+}
+
+/* ── Background ────────────────────────────────────────────── */
+.hub__bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(130% 120% at 75% 35%, var(--red-hot) 0%, var(--red) 42%, var(--red-deep) 100%);
+}
+.hub__stripes {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(-62deg, transparent 0 34px, rgba(0, 0, 0, 0.12) 34px 40px);
+  animation: drift 4s linear infinite;
+}
+.hub__wedge {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--black);
+  clip-path: polygon(0 0, 57% 0, 39% 100%, 0 100%);
+}
+.hub__halftone {
+  --dot: color-mix(in srgb, var(--accent) 55%, transparent);
+  --dot-dir: 40deg;
+  --dot-size: 13px;
+}
+/* White rim, then an accent cut in the patron's colour */
+.hub__rim {
+  position: absolute;
+  inset: 0;
+  background: var(--white);
+  clip-path: polygon(57% 0, 58.6% 0, 40.4% 100%, 39% 100%);
+}
+/* accent slash cutting across the wedge (a sibling, since the rim is clipped) */
+.hub__wedge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  clip-path: polygon(0 90%, 45% 79%, 44% 82.5%, 0 94.5%);
+}
+.hub__flash {
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  left: 0;
+  width: 7%;
+  background: var(--white);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Figure ────────────────────────────────────────────────── */
+.hub__figure {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 52%;
+  height: 100%;
+  pointer-events: none;
+}
+.hub__pose {
+  position: absolute;
+  inset: 4% 0 0 2%;
+}
+.hub__pose img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter:
+    drop-shadow(var(--outline) 0 0 var(--white))
+    drop-shadow(calc(var(--outline) * -1) 0 0 var(--white))
+    drop-shadow(0 var(--outline) 0 var(--white))
+    drop-shadow(0 calc(var(--outline) * -1) 0 var(--white))
+    drop-shadow(1rem 0.6rem 0 var(--red));
+}
+.hub__pose.is-placeholder .placeholder { height: 78%; }
+
+/* ── Calendar (top-left, over the wedge) ───────────────────── */
+.hub__cal {
+  position: absolute;
+  z-index: 2;
+  top: calc(1.6rem + var(--safe-t));
+  left: calc(2.4vw + var(--safe-l));
+}
+
+/* ── Back ──────────────────────────────────────────────────── */
+.hub__close {
+  position: absolute;
+  z-index: 3;
+  top: calc(1.6rem + var(--safe-t));
+  right: calc(2.4vw + var(--safe-r));
+  border: 0;
+  padding: 0.3rem;
+  background: none;
+  font-size: clamp(1.3rem, 2vw, 1.8rem);
+  transform: rotate(4deg);
+  transition: transform 0.2s var(--ease-pop);
+}
+.hub__close:hover,
+.hub__close:focus-visible { transform: rotate(-3deg) scale(1.12); }
+
+/* ── Callout bubble ────────────────────────────────────────── */
+.hub__bubble {
+  position: absolute;
+  z-index: 2;
+  top: calc(13vh + var(--safe-t));
+  right: calc(7vw + var(--safe-r));
+  width: min(25rem, 36vw);
+  padding: 1rem 1.3rem 1.1rem;
+  background: var(--white);
+  color: var(--black);
+  border: var(--outline) solid var(--black);
+  box-shadow: 0.5rem 0.5rem 0 var(--black);
+  transform: rotate(-3deg);
+  transform-origin: left bottom;
+}
+/* tail pointing back toward the figure */
+.hub__bubble::before,
+.hub__bubble::after {
+  content: "";
+  position: absolute;
+  left: 2.2rem;
+  top: 100%;
+  width: 2.4rem;
+  height: 2rem;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+.hub__bubble::before {
+  background: var(--black);
+  margin-top: 0;
+  translate: -0.35rem 0.1rem;
+  scale: 1.35;
+  transform-origin: top left;
+}
+.hub__bubble::after {
+  background: var(--white);
+  margin-top: calc(var(--outline) * -1.5);
+}
+.bubble__name {
+  font-size: clamp(1.3rem, 2.1vw, 1.9rem);
+  margin: -2.1rem 0 0.6rem -0.4rem;
+  transform: rotate(-4deg);
+}
+.bubble__text {
+  margin: 0;
+  font-family: var(--f-condensed);
+  font-weight: 500;
+  font-size: clamp(1rem, 1.35vw, 1.2rem);
+  line-height: 1.3;
+}
+.bubble__host {
+  display: inline-block;
+  margin-top: 0.6rem;
+  padding: 0.12rem 0.55rem;
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--f-condensed);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  transform: skewX(-12deg);
+}
+
+/* ── Menu ──────────────────────────────────────────────────── */
+.hub__menu {
+  position: absolute;
+  z-index: 2;
+  top: 40%;
+  right: calc(6vw + var(--safe-r));
+}
+.hub__menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: clamp(0.3rem, 1.6vh, 1.1rem);
+}
+/* stairs step down and to the left, toward the figure */
+.hub__menu li {
+  margin-right: calc(var(--i, 0) * clamp(1.2rem, 3.2vw, 3.4rem));
+  transform: rotate(var(--tilt, 0deg));
+}
+.hub.is-open .hub__menu li {
+  animation: slam 0.42s var(--ease-pop) backwards;
+  animation-delay: calc(0.12s + var(--i, 0) * 0.055s);
+}
+
+.item {
+  position: relative;
+  display: grid;
+  place-items: center end;
+  padding: 0.1em 0.3em;
+  text-decoration: none;
+  outline: none;
+  font-size: clamp(2.6rem, 5.2vw, 5rem);
+  line-height: 1;
+}
+.item > .item__plain,
+.item > .item__collage,
+.item > .item__back {
+  grid-area: 1 / 1;
+}
+
+.item__plain {
+  font-family: var(--f-display);
+  color: var(--white);
+  -webkit-text-stroke: 0.14em var(--black);
+  paint-order: stroke fill;
+  text-shadow: 0.07em 0.07em 0 var(--black);
+  transition: opacity 0.1s, transform 0.25s var(--ease-pop);
+}
+.item:hover .item__plain { transform: translateX(-0.12em); }
+
+.item__collage {
+  font-size: 1.12em;
+  opacity: 0;
+  transform: scale(0.35) rotate(-14deg);
+  transition: opacity 0.08s, transform 0.3s var(--ease-pop);
+  pointer-events: none;
+}
+
+/* jagged backing: black slab with an accent-coloured slab behind it */
+.item__back {
+  position: relative;
+  justify-self: stretch;
+  align-self: stretch;
+  margin: -0.12em -0.55em -0.1em -0.45em;
+  transform: scaleX(0) skewX(-14deg);
+  transform-origin: right center;
+  transition: transform 0.28s var(--ease-pop);
+}
+.item__back::before,
+.item__back::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(3% 8%, 46% 0, 100% 6%, 97% 52%, 100% 94%, 54% 100%, 0 92%, 4% 48%);
+}
+.item__back::before {
+  background: var(--accent);
+  translate: 0.22em 0.16em;
+}
+.item__back::after {
+  background: var(--black);
+}
+
+.item.is-selected .item__plain { opacity: 0; transform: scale(1.2); }
+.item.is-selected .item__collage { opacity: 1; transform: none; }
+.item.is-selected .item__back {
+  transform: scaleX(1) skewX(-14deg);
+  animation: beat 1.2s var(--ease-pop) 0.3s infinite;
+}
+.item:focus-visible .item__back::after { outline: 3px solid var(--white); }
+
+/* status diamond */
+.item__status {
+  position: absolute;
+  right: -0.55em;
+  top: 50%;
+  translate: 0 -50%;
+}
+.item__status i {
+  display: block;
+  width: 0.22em;
+  height: 0.22em;
+  border: 0.05em solid var(--black);
+  background: #9a9a9a;
+  transform: rotate(45deg);
+}
+.item__status[data-state="off"] { display: none; }
+.item__status[data-state="online"] i { background: var(--online); }
+.item__status[data-state="offline"] i { background: var(--white); animation: blink 0.8s steps(2) infinite; }
+
+.hub__empty {
+  font-family: var(--f-condensed);
+  font-weight: 700;
+  font-size: 1.1rem;
+  background: var(--black);
+  padding: 0.6rem 1rem;
+  border: var(--outline) solid var(--white);
+}
+
+/* ── Info block (not selectable, kept apart from the menu) ─── */
+.hub__info {
+  position: absolute;
+  z-index: 2;
+  left: calc(2.4vw + var(--safe-l));
+  bottom: calc(2rem + var(--safe-b));
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.3rem 1rem 0.4rem;
+  background: var(--white);
+  color: var(--black);
+  border: var(--outline) solid var(--black);
+  box-shadow: 0.4rem 0.4rem 0 var(--accent);
+  transform: skewX(-14deg) rotate(-3deg);
+}
+.info__count {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  line-height: 1;
+}
+.info__label {
+  font-family: var(--f-condensed);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+}
+.hub__info.is-bad .info__count { color: var(--red); }
+
+/* ── Key hints ─────────────────────────────────────────────── */
+.hub__keys {
+  position: absolute;
+  z-index: 2;
+  right: calc(2.4vw + var(--safe-r));
+  bottom: calc(1.4rem + var(--safe-b));
+  display: flex;
+  gap: 1.4rem;
+  font-family: var(--f-condensed);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: var(--white);
+  text-shadow: 0.08em 0.08em 0 var(--black);
+}
+.hub__keys kbd {
+  display: inline-block;
+  min-width: 1.7rem;
+  margin-right: 0.35rem;
+  padding: 0.05rem 0.4rem;
+  border: 2px solid var(--black);
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--f-display);
+  text-align: center;
+  text-shadow: none;
+  transform: skewX(-12deg);
+}
+@media (hover: none) {
+  .hub__keys { display: none; }
+}
+
+/* ── Calendar block ────────────────────────────────────────── */
+.calendar {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  transform: rotate(-5deg);
+  transform-origin: left top;
+}
+.calendar__date {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+.calendar__md {
+  font-family: var(--f-display);
+  font-size: clamp(3rem, 6vw, 5.4rem);
+  line-height: 0.85;
+  color: var(--white);
+  -webkit-text-stroke: 0.08em var(--black);
+  paint-order: stroke fill;
+  text-shadow: 0.06em 0.06em 0 var(--accent);
+}
+.calendar__dow {
+  font-family: var(--f-display);
+  font-size: clamp(1.1rem, 2vw, 1.8rem);
+  padding: 0.05rem 0.55rem;
+  border: 3px solid var(--black);
+  background: var(--white);
+  color: var(--black);
+  transform: rotate(-8deg) translateY(-0.4rem);
+}
+.calendar__dow.is-weekend { background: var(--red); color: var(--white); }
+.calendar__row { display: flex; gap: 0.35rem; }
+.calendar__row > span {
+  font-family: var(--f-condensed);
+  font-weight: 700;
+  font-size: clamp(0.8rem, 1.1vw, 1rem);
+  letter-spacing: 0.06em;
+  padding: 0.15rem 0.6rem;
+  background: var(--white);
+  color: var(--black);
+  border: 2px solid var(--black);
+  transform: skewX(-12deg);
+}
+.calendar__wx { background: var(--accent) !important; }
+
+/* ── Portrait / phone ──────────────────────────────────────── */
+@media (orientation: portrait), (max-aspect-ratio: 4/5) {
+  .hub__wedge { clip-path: polygon(0 0, 100% 0, 100% 44%, 0 60%); }
+  .hub__rim { clip-path: polygon(0 60%, 100% 44%, 100% 45.4%, 0 61.4%); }
+  .hub__wedge::after { clip-path: polygon(0 8%, 60% 2%, 58% 4%, 0 11%); }
+
+  .hub__figure {
+    width: 100%;
+    height: 58%;
+    top: calc(2rem + var(--safe-t));
+    bottom: auto;
+  }
+  .hub__pose { inset: 0 10% 0 18%; }
+
+  .hub__bubble {
+    top: auto;
+    bottom: calc(52% + var(--safe-b));
+    right: calc(4vw + var(--safe-r));
+    width: min(18rem, 62vw);
+    padding: 0.7rem 0.9rem 0.8rem;
+    transform: rotate(3deg);
+    transform-origin: right bottom;
+  }
+  .hub__bubble::before,
+  .hub__bubble::after { display: none; }
+  .bubble__name { margin-top: -1.6rem; font-size: 1.25rem; }
+  .bubble__text { font-size: 0.95rem; }
+
+  .hub__menu {
+    top: auto;
+    bottom: calc(5.4rem + var(--safe-b));
+    right: calc(5vw + var(--safe-r));
+  }
+  .hub__menu li { margin-right: calc(var(--i, 0) * 1.1rem); }
+  .item { font-size: clamp(2.3rem, 11vw, 3.4rem); }
+
+  .hub__info {
+    left: auto;
+    right: calc(5vw + var(--safe-r));
+    bottom: calc(1.2rem + var(--safe-b));
+    transform: skewX(-14deg) rotate(2deg);
+  }
+  .info__count { font-size: 1.6rem; }
+}

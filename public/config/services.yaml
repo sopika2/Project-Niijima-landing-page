@@ -1,29 +1,37 @@
 # Every entry becomes a menu item in the hub.
 # Add a new subdomain here and reload the page — no rebuild needed.
 #
-# id        unique key
-# name      big menu text
-# subtitle  small line under it
-# url       where it goes
-# patron    optional: makoto | sae — tints the item with that sister's accent
-# hidden    optional: true keeps it out of the menu
-# status    optional: false skips the online check for this one
+# id           unique key
+# name         big menu text
+# subtitle     small line under it
+# description  one line shown in the callout bubble while it's highlighted
+# url          where it goes
+# patron       makoto | sae — whose art and accent colour show while highlighted
+# pose         optional image for this item; falls back to the patron's art in site.yaml
+# hidden       true keeps it out of the menu
+# status       false skips the online check for this one
 
 services:
   - id: mementos
     name: Mementos
     subtitle: Image vault
+    description: Upload an image, get a link that embeds anywhere.
     url: https://mementos.niijimasisters.com
     patron: sae
+    pose: /assets/poses/mementos.webp
 
   - id: compendium
     name: Compendium
     subtitle: Wiki & notes
+    description: Everything written down, searchable in one place.
     url: https://compendium.niijimasisters.com
     patron: makoto
+    pose: /assets/poses/compendium.webp
 
   - id: treasure
     name: Treasure
     subtitle: Finance tracker
+    description: Every forint and every budget, tracked.
     url: https://treasure.niijimasisters.com
     patron: makoto
+    pose: /assets/poses/treasure.webp

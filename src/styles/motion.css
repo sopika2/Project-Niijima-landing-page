@@ -1,0 +1,43 @@
+/* ═════════ Shared motion ═════════════════════════════════════ */
+
+/* Heartbeat pulse for the selected item and the emblem */
+@keyframes beat {
+  0%, 40%, 100% { scale: 1; }
+  10% { scale: 1.06; }
+  22% { scale: 0.99; }
+}
+
+/* Menu items slam in from the right with an overshoot */
+@keyframes slam {
+  from { translate: 60vw 0; opacity: 0; }
+  70% { translate: -1.2rem 0; opacity: 1; }
+  to { translate: 0 0; }
+}
+
+/* Background stripes creep sideways while the hub is idle */
+@keyframes drift {
+  to { background-position: 80px 0; }
+}
+
+@keyframes sprite {
+  from { background-position: 0% 0; }
+  to { background-position: 100% 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes blink {
+  50% { opacity: 0.2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+  }
+}

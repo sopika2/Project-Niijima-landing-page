@@ -1,0 +1,281 @@
+/* ═════════ Split screen ══════════════════════════════════════ */
+.split {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--black);
+  transition: transform 0.45s var(--ease-snap), filter 0.45s;
+}
+#app[data-view="hub"] .split {
+  transform: scale(0.94) rotate(-1.5deg);
+  filter: brightness(0.35) grayscale(0.6);
+}
+
+.side {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  transition: clip-path var(--t-tear) var(--ease-pop);
+}
+.side__bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.side__shards,
+.side__shards::before,
+.side__shards::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+/* Makoto: black, steel-blue cuts */
+.side--makoto .side__bg {
+  background:
+    repeating-linear-gradient(115deg, transparent 0 46px, rgba(255, 255, 255, 0.025) 46px 92px),
+    radial-gradient(120% 90% at 20% 100%, #16203a 0%, var(--black) 62%);
+}
+.side--makoto .side__halftone {
+  --dot: color-mix(in srgb, var(--accent) 45%, transparent);
+  --dot-dir: 30deg;
+  --dot-size: 12px;
+}
+.side--makoto .side__shards::before {
+  background: var(--red);
+  clip-path: polygon(0 72%, 62% 56%, 55% 62%, 0 81%);
+}
+.side--makoto .side__shards::after {
+  background: var(--accent);
+  clip-path: polygon(0 10%, 38% 3%, 33% 6.5%, 0 14.5%);
+}
+
+/* Sae: red, black and casino gold */
+.side--sae .side__bg {
+  background:
+    repeating-linear-gradient(115deg, transparent 0 46px, rgba(0, 0, 0, 0.06) 46px 92px),
+    radial-gradient(120% 100% at 85% 0%, var(--red-hot) 0%, var(--red) 38%, var(--red-deep) 100%);
+}
+.side--sae .side__halftone {
+  --dot: rgba(0, 0, 0, 0.45);
+  --dot-dir: 210deg;
+  --dot-size: 13px;
+}
+.side--sae .side__shards::before {
+  background: var(--black);
+  clip-path: polygon(100% 18%, 40% 37%, 47% 30%, 100% 8%);
+}
+.side--sae .side__shards::after {
+  background: var(--accent);
+  clip-path: polygon(100% 84%, 50% 97%, 55% 92.5%, 100% 80%);
+}
+
+/* Character art */
+.side__art {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 60%;
+  transition: transform 0.45s var(--ease-pop), filter 0.35s;
+}
+.side--makoto .side__art { left: 0; }
+.side--sae .side__art { right: 0; }
+.side.is-focused .side__art { transform: scale(1.05) translateY(-1%); }
+.side.is-dimmed .side__art { filter: grayscale(1) brightness(0.45); }
+
+.side__frame {
+  position: absolute;
+  inset: 0;
+  transform: translate(var(--ox, 0), var(--oy, 0)) scale(var(--scale, 1));
+  transform-origin: var(--fx, 50%) var(--fy, 25%);
+}
+.side__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: var(--fx, 50%) bottom;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* Labels */
+.side__label {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.4s var(--ease-pop);
+}
+.side--makoto .side__label {
+  left: calc(4vw + var(--safe-l));
+  bottom: calc(6vh + var(--safe-b));
+  align-items: flex-start;
+}
+.side--sae .side__label {
+  right: calc(4vw + var(--safe-r));
+  top: calc(7vh + var(--safe-t));
+  align-items: flex-end;
+}
+.side.is-dimmed .side__label { opacity: 0.4; }
+.side.is-focused .side__label { transform: scale(1.06); }
+.side--makoto.is-focused .side__label { transform-origin: left bottom; }
+.side--sae.is-focused .side__label { transform-origin: right top; }
+
+.side__name {
+  margin: 0;
+  font-size: clamp(3rem, 8.5vw, 8.5rem);
+  font-weight: 400;
+  transform: rotate(-7deg);
+}
+.side--makoto .side__name { --shadow: var(--red); }
+.side--sae .side__name { transform: rotate(5deg); }
+
+/* Arcana / codename: a slanted two-part tag */
+.side__tag {
+  display: inline-flex;
+  align-items: stretch;
+  transform: skewX(-16deg) rotate(-3deg);
+  border: var(--outline) solid var(--black);
+  box-shadow: 0.35rem 0.35rem 0 var(--black);
+}
+.side--sae .side__tag { transform: skewX(-16deg) rotate(3deg); }
+.side__tag > span {
+  display: block;
+  padding: 0.2rem 0.8rem;
+  font-family: var(--f-display);
+  letter-spacing: 0.04em;
+  font-size: clamp(0.95rem, 1.4vw, 1.25rem);
+}
+.side__arcana { background: var(--accent); color: var(--black); }
+.side__codename { background: var(--white); color: var(--black); }
+
+.side__tagline {
+  font-family: var(--f-condensed);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-size: clamp(0.8rem, 1.1vw, 1rem);
+  background: var(--black);
+  color: var(--white);
+  padding: 0.3rem 0.8rem;
+  transform: skewX(-12deg);
+}
+.side__tagline:empty { display: none; }
+
+.side__go {
+  pointer-events: none;
+  margin-top: 0.3rem;
+  border: var(--outline) solid var(--black);
+  padding: 0.55rem 1.4rem;
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--f-display);
+  font-size: clamp(1.1rem, 1.7vw, 1.5rem);
+  letter-spacing: 0.03em;
+  transform: skewX(-14deg) translateX(-1rem);
+  box-shadow: 0.35rem 0.35rem 0 var(--red);
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.3s var(--ease-pop), background 0.12s, color 0.12s;
+}
+.side--sae .side__go { transform: skewX(-14deg) translateX(1rem); box-shadow: 0.35rem 0.35rem 0 var(--black); }
+.side.is-focused .side__go { opacity: 1; transform: skewX(-14deg); pointer-events: auto; }
+.side__go:hover,
+.side__go:focus-visible { background: var(--black); color: var(--white); }
+
+/* Torn paper strip between the halves */
+.split__paper-shadow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 0.4rem rgba(0, 0, 0, 0.7));
+}
+.split__paper {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(97deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(3deg, rgba(0, 0, 0, 0.035) 0 1px, transparent 1px 4px),
+    var(--paper);
+  transition: clip-path var(--t-tear) var(--ease-pop);
+}
+
+/* Emblem on the tear */
+.emblem {
+  position: absolute;
+  z-index: 5;
+  left: var(--tear, 50%);
+  top: 50%;
+  translate: -50% -50%;
+  width: clamp(80px, 8vw, 116px);
+  aspect-ratio: 1;
+  border: 0;
+  padding: 0;
+  background: none;
+  transition: left var(--t-tear) var(--ease-pop), top var(--t-tear) var(--ease-pop), transform 0.25s var(--ease-pop);
+}
+.split[data-orient="portrait"] .emblem {
+  left: 50%;
+  top: var(--tear, 50%);
+}
+.emblem:hover,
+.emblem:focus-visible { transform: scale(1.12) rotate(-8deg); }
+.emblem__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 0 0 0 var(--outline) var(--black), 0.4rem 0.4rem 0 var(--outline) var(--red);
+  animation: beat 1.2s var(--ease-pop) infinite;
+}
+.emblem__inner {
+  position: absolute;
+  inset: 13%;
+  border-radius: 50%;
+  background: var(--black);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  font-size: clamp(1.1rem, 1.9vw, 1.6rem);
+}
+.emblem__inner img { width: 100%; height: 100%; object-fit: contain; }
+.emblem__hint {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 0.7rem);
+  translate: -50% 0;
+  padding: 0.1rem 0.7rem;
+  border: 2px solid var(--white);
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--f-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  transform: skewX(-14deg) rotate(-4deg);
+  white-space: nowrap;
+}
+
+/* ── Portrait / phone: top & bottom halves ─────────────────── */
+.split[data-orient="portrait"] .side__art {
+  width: auto;
+  left: 0;
+  right: 0;
+  height: 60%;
+}
+.split[data-orient="portrait"] .side--makoto .side__art { top: 0; bottom: auto; }
+.split[data-orient="portrait"] .side--sae .side__art { bottom: 0; top: auto; }
+.split[data-orient="portrait"] .side--makoto .side__label {
+  left: calc(5vw + var(--safe-l));
+  top: calc(5vh + var(--safe-t));
+  bottom: auto;
+}
+.split[data-orient="portrait"] .side--makoto.is-focused .side__label { transform-origin: left top; }
+.split[data-orient="portrait"] .side--sae .side__label {
+  right: calc(5vw + var(--safe-r));
+  bottom: calc(5vh + var(--safe-b));
+  top: auto;
+}
+.split[data-orient="portrait"] .side--sae.is-focused .side__label { transform-origin: right bottom; }
+.split[data-orient="portrait"] .side__name { font-size: clamp(2.6rem, 14vw, 5.5rem); }
+.split[data-orient="portrait"] .side--makoto .side__shards::before { clip-path: polygon(0 34%, 72% 20%, 65% 25%, 0 40%); }
+.split[data-orient="portrait"] .side--sae .side__shards::before { clip-path: polygon(100% 62%, 28% 75%, 35% 69%, 100% 56%); }

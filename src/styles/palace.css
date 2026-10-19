@@ -1,0 +1,73 @@
+/* ═════════ 404 — "This Palace doesn't exist" ═════════════════ */
+.palace {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 6vh 6vw;
+  overflow: hidden;
+}
+.palace__bg { position: absolute; inset: 0; background: var(--black); }
+.palace__halftone { --dot: rgba(229, 25, 28, 0.4); --dot-dir: 135deg; }
+.palace__slash {
+  position: absolute;
+  inset: 0;
+  background: var(--red);
+  clip-path: polygon(0 62%, 100% 30%, 100% 52%, 0 84%);
+}
+.palace__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.4rem;
+  max-width: 54rem;
+}
+.palace__code {
+  font-family: var(--f-display);
+  font-size: clamp(6rem, 22vw, 16rem);
+  line-height: 0.8;
+  color: var(--black);
+  -webkit-text-stroke: 0.025em var(--white);
+  text-shadow: 0.04em 0.04em 0 var(--red);
+  transform: rotate(-6deg);
+}
+.palace__title { margin: 0; font-size: clamp(1.8rem, 5.4vw, 4rem); font-weight: 400; transform: rotate(-3deg); }
+.palace__target {
+  display: inline-flex;
+  transform: skewX(-12deg);
+  font-family: var(--f-condensed);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: var(--outline) solid var(--white);
+}
+.palace__target span { background: var(--white); color: var(--black); padding: 0.3rem 0.8rem; }
+.palace__target code { background: var(--black); color: var(--white); padding: 0.3rem 0.8rem; font-family: ui-monospace, monospace; word-break: break-all; }
+.palace__text {
+  margin: 0;
+  max-width: 34rem;
+  font-family: var(--f-condensed);
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  font-weight: 500;
+  line-height: 1.35;
+  background: var(--white);
+  color: var(--black);
+  border: var(--outline) solid var(--black);
+  padding: 0.6rem 0.9rem;
+  box-shadow: 0.4rem 0.4rem 0 var(--black);
+}
+.palace__back {
+  margin-top: 0.4rem;
+  padding: 0.6rem 1.6rem;
+  border: var(--outline) solid var(--black);
+  background: var(--white);
+  color: var(--black);
+  text-decoration: none;
+  font-family: var(--f-display);
+  font-size: 1.4rem;
+  letter-spacing: 0.03em;
+  transform: skewX(-14deg);
+  box-shadow: 0.4rem 0.4rem 0 var(--red);
+  transition: transform 0.2s var(--ease-pop), background 0.12s, color 0.12s;
+}
+.palace__back:hover { background: var(--black); color: var(--white); transform: skewX(-14deg) scale(1.06); }
