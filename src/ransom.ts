@@ -20,8 +20,10 @@ export function seeded(seedText: string): () => number {
 const VARIANTS = 7;
 
 export interface RansomOptions {
-  /** "dark" for red backgrounds (no red tiles), "red" allows red tiles. */
-  palette?: "dark" | "red";
+  /** "dark" for red backgrounds (no red tiles), "red" allows red tiles, "mono" is black/white only. */
+  palette?: "dark" | "red" | "mono";
+  /** Bigger size jumps between letters, menu-item style. */
+  wild?: boolean;
   seed?: string;
   /** Randomly drop some letters to lower case, menu-label style. */
   mixCase?: boolean;
@@ -65,7 +67,13 @@ export function ransom(text: string, opts: RansomOptions = {}): HTMLElement {
     el.textContent = ch;
 
     const first = indexInWord === 0 && bigFirst;
-    const size = first ? 1.28 + rand() * 0.14 : 0.82 + rand() * 0.32;
+    const size = opts.wild
+      ? first
+        ? 1.45 + rand() * 0.2
+        : 0.72 + rand() * 0.5
+      : first
+        ? 1.28 + rand() * 0.14
+        : 0.82 + rand() * 0.32;
     el.style.setProperty("--sz", size.toFixed(2));
     el.style.setProperty("--rot", `${(rand() * 18 - 9).toFixed(1)}deg`);
     el.style.setProperty("--dy", `${(rand() * 0.2 - 0.1).toFixed(2)}em`);

@@ -1,5 +1,10 @@
-// The hub: every Niijima Network service as a cascading menu on the left,
-// the patron sister breaking out large on the right, changing pose per item.
+// The hub, built on how Persona 5's menus work:
+// - screen split by a white divide: red side over a red-tinted scene, black/white patterned side
+// - the patron sister straddles the divide, changing pose per highlighted item
+// - many tight menu items in black/white collage; the selected one grows, re-cuts in red,
+//   and sits on a jittering red/cyan highlight that keeps re-shaping
+// - info lives in angular black panels with white outlines; descriptions in a clean italic sans
+// - motion: heartbeat pulse, white flash frames, small screen shakes, staggered entrances
 
 import type { Service, SiteConfig, SisterId } from "./config";
 import { createCalendar } from "./calendar";
@@ -14,7 +19,10 @@ export interface Hub {
   key(e: KeyboardEvent): boolean;
 }
 
+type State = "checking" | "online" | "offline" | "off";
+
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const OFFSETS = [0.3, 1.4, 0.6, 1.9, 0.9, 2.3, 0.2, 1.6, 1.1]; // irregular left edge, in em
 
 export function createHub(site: SiteConfig, onGo: (s: Service) => void, onClose: () => void): Hub {
   const el = document.createElement("section");
@@ -25,50 +33,60 @@ export function createHub(site: SiteConfig, onGo: (s: Service) => void, onClose:
   el.inert = true;
   el.innerHTML = `
     <div class="hub__bg" aria-hidden="true">
-      <div class="hub__stripes"></div>
-      <div class="hub__slab"><div class="hub__halftone"></div></div>
-      <div class="hub__band"></div>
-      <div class="hub__shard hub__shard--a"></div>
-      <div class="hub__shard hub__shard--b"></div>
-      <div class="hub__flash"></div>
+      <div class="hub__scene"><div class="hub__scene-img"></div><div class="hub__scene-tint"></div></div>
+      <div class="hub__mono"><div class="hub__mono-dots"></div></div>
+      <div class="hub__divide"></div>
+      <div class="hub__grain"></div>
     </div>
     <div class="hub__figure" aria-hidden="true"><div class="hub__pose"></div></div>
     <div class="hub__cal"></div>
-    <div class="hub__title" aria-hidden="true"></div>
-    <button class="hub__close" type="button" aria-label="Back to the split screen"></button>
-    <nav class="hub__menu" aria-label="Services"><ul></ul></nav>
-    <div class="hub__bubble" aria-live="polite">
-      <div class="bubble__name"></div>
-      <p class="bubble__text"></p>
-      <div class="bubble__host"></div>
+    <div class="hub__status" aria-hidden="true">
+      <div class="status__head"></div>
+      <ul class="status__rows"></ul>
     </div>
-    <div class="hub__info" aria-hidden="true"><b class="info__count">–</b><span class="info__label">online</span></div>
-    <div class="hub__keys" aria-hidden="true">
-      <span><kbd>↑</kbd><kbd>↓</kbd>Select</span>
-      <span><kbd>Enter</kbd>Go</span>
-      <span><kbd>Esc</kbd>Back</span>
-    </div>`;
+    <nav class="hub__menu" aria-label="Services"><ul></ul></nav>
+    <div class="hub__desc" aria-live="polite">
+      <div class="desc__name"></div>
+      <p class="desc__text"></p>
+      <span class="desc__host"></span>
+    </div>
+    <div class="hub__hints">
+      <button type="button" class="hint hint--back"><kbd>Esc</kbd><span>Back</span></button>
+      <button type="button" class="hint hint--go"><kbd>Enter</kbd><span>Go</span></button>
+    </div>
+    <div class="hub__flash" aria-hidden="true"></div>`;
+
+  // Scene behind the menu (tinted red by CSS). Missing file → plain red scene.
+  if (site.hubBackdrop) {
+    const probe = new Image();
+    probe.onload = () => {
+      el.querySelector<HTMLElement>(".hub__scene-img")!.style.backgroundImage = `url("${site.hubBackdrop}")`;
+      el.classList.add("has-scene");
+    };
+    probe.src = site.hubBackdrop;
+  }
 
   el.querySelector(".hub__cal")!.append(createCalendar(site.calendar));
-  el.querySelector(".hub__title")!.append(ransom(site.title.toUpperCase(), { palette: "red", seed: "hub-title" }));
-  el.querySelector(".hub__close")!.append(ransom("BACK", { palette: "red", seed: "back" }));
-  el.querySelector(".hub__close")!.addEventListener("click", () => onClose());
+  el.querySelector(".status__head")!.append(ransom("NETWORK", { palette: "red", seed: "status-head" }));
+  el.querySelector(".hint--back")!.addEventListener("click", () => onClose());
+  el.querySelector(".hint--go")!.addEventListener("click", () => {
+    if (services[index]) onGo(services[index]);
+  });
 
-  const ul = el.querySelector("ul")!;
+  const ul = el.querySelector<HTMLElement>(".hub__menu ul")!;
+  const rows = el.querySelector<HTMLElement>(".status__rows")!;
   const figure = el.querySelector<HTMLElement>(".hub__figure")!;
   const pose = el.querySelector<HTMLElement>(".hub__pose")!;
   const flash = el.querySelector<HTMLElement>(".hub__flash")!;
-  const bubble = el.querySelector<HTMLElement>(".hub__bubble")!;
-  const count = el.querySelector<HTMLElement>(".info__count")!;
+  const desc = el.querySelector<HTMLElement>(".hub__desc")!;
 
   let services: Service[] = [];
   let items: HTMLAnchorElement[] = [];
   let index = -1;
-  let shuffle = 0;
+  let cuts = 0;
   let open = false;
-  const states = new Map<string, "checking" | "online" | "offline" | "off">();
 
-  // ── Figure: pose → patron art → labelled placeholder ─────────
+  // ── Figure ───────────────────────────────────────────────────
   const imgCache = new Map<string, Promise<HTMLImageElement | null>>();
   const loadImg = (src?: string) => {
     if (!src) return Promise.resolve(null);
@@ -105,45 +123,55 @@ export function createHub(site: SiteConfig, onGo: (s: Service) => void, onClose:
     }
     el.dataset.patron = sister;
     if (!reduceMotion()) {
-      // Hard cut in: overshoot sideways, flash white, settle.
       figure.animate(
         [
-          { transform: "translateX(8%) skewX(-8deg)", filter: "brightness(4) contrast(2)" },
-          { transform: "translateX(-1.5%) skewX(2deg)", filter: "none", offset: 0.45 },
-          { transform: "translateX(0.5%)", offset: 0.75 },
+          { transform: "translateX(5%)", filter: "brightness(5)" },
+          { transform: "translateX(-1%)", filter: "brightness(1)", offset: 0.4 },
           { transform: "none" },
         ],
-        { duration: 240, easing: "steps(6, end)" },
-      );
-      flash.animate(
-        [
-          { transform: "translateX(-40%) skewX(-24deg)", opacity: 1 },
-          { transform: "translateX(1400%) skewX(-24deg)", opacity: 1 },
-        ],
-        { duration: 220, easing: "cubic-bezier(0.7, 0, 0.3, 1)" },
+        { duration: 220, easing: "steps(5, end)" },
       );
     }
   }
 
-  function updateBubble(s: Service) {
-    bubble.querySelector(".bubble__name")!.replaceChildren(ransom(s.name.toUpperCase(), { palette: "red", seed: `bubble-${s.id}` }));
-    bubble.querySelector(".bubble__text")!.textContent = s.description ?? s.subtitle ?? "";
-    bubble.querySelector(".bubble__host")!.textContent = new URL(s.url, location.href).host;
+  // ── Description panel ────────────────────────────────────────
+  function showDesc(s: Service) {
+    desc.querySelector(".desc__name")!.replaceChildren(ransom(s.name.toUpperCase(), { palette: "red", seed: `desc-${s.id}` }));
+    desc.querySelector(".desc__text")!.textContent = s.description ?? s.subtitle ?? "";
+    desc.querySelector(".desc__host")!.textContent = new URL(s.url, location.href).host;
     if (!reduceMotion()) {
-      bubble.animate(
+      desc.animate(
         [
-          { transform: "scale(0.2) rotate(-20deg)", opacity: 0 },
-          { transform: "scale(1.15) rotate(2deg)", opacity: 1, offset: 0.5 },
-          { transform: "scale(0.96) rotate(-4deg)", offset: 0.75 },
-          { transform: "rotate(-3deg)" },
+          { transform: "translateY(0.6rem) rotate(-1deg)" },
+          { transform: "translateY(-0.2rem) rotate(-3.5deg)", offset: 0.5 },
+          { transform: "rotate(-2.5deg)" },
         ],
-        { duration: 260, easing: "steps(5, end)" },
+        { duration: 200, easing: "steps(4, end)" },
       );
     }
   }
 
-  function letter(a: HTMLAnchorElement, s: Service, seed: string) {
-    a.querySelector(".item__collage")!.replaceChildren(ransom(s.name.toUpperCase(), { palette: "red", seed, mixCase: true }));
+  // ── Selection highlight: two polygons re-shaped every ~120ms ─
+  const jitter = (base: number[][], amt: number) =>
+    base.map(([x, y]) => `${(x + (Math.random() - 0.5) * amt).toFixed(1)},${(y + (Math.random() - 0.5) * amt).toFixed(1)}`).join(" ");
+  const RED = [[0, 6], [88, 0], [100, 15], [90, 30], [4, 27]];
+  const CYAN = [[-3, 10], [84, 5], [104, 19], [92, 35], [1, 33]];
+  function reshape() {
+    const a = items[index];
+    if (!a) return;
+    a.querySelector(".cursor__red")!.setAttribute("points", jitter(RED, 5));
+    a.querySelector(".cursor__cyan")!.setAttribute("points", jitter(CYAN, 7));
+  }
+  setInterval(() => {
+    if (open && !reduceMotion()) reshape();
+  }, 120);
+
+  function letter(a: HTMLAnchorElement, s: Service, selected: boolean) {
+    a.querySelector(".item__collage")!.replaceChildren(
+      selected
+        ? ransom(s.name.toUpperCase(), { palette: "red", seed: `item-${s.id}-${cuts}`, mixCase: true, wild: true })
+        : ransom(s.name.toUpperCase(), { palette: "mono", seed: `item-${s.id}`, mixCase: true, wild: true }),
+    );
   }
 
   function select(i: number, focusIt = true) {
@@ -153,67 +181,72 @@ export function createHub(site: SiteConfig, onGo: (s: Service) => void, onClose:
     if (next === index) return;
     const prev = index;
     index = next;
-    shuffle++;
+    cuts++;
     items.forEach((a, j) => a.classList.toggle("is-selected", j === index));
-    // The old item goes back to its resting letters; the new one gets freshly cut ones.
-    if (prev >= 0) letter(items[prev], services[prev], `item-${services[prev].id}`);
-    letter(items[index], services[index], `item-${services[index].id}-${shuffle}`);
-    const burst = items[index].querySelector<HTMLElement>(".item__burst")!;
-    burst.classList.remove("is-firing");
-    void burst.offsetWidth;
-    burst.classList.add("is-firing");
+    if (prev >= 0) letter(items[prev], services[prev], false);
+    letter(items[index], services[index], true);
+    reshape();
+    if (!reduceMotion() && prev >= 0) {
+      // one white frame + a tiny shake, like a hit
+      flash.animate([{ opacity: 0.55 }, { opacity: 0 }], { duration: 90, easing: "steps(2, end)" });
+      el.animate(
+        [{ translate: "0 0" }, { translate: "4px -3px" }, { translate: "-3px 2px" }, { translate: "0 0" }],
+        { duration: 110, easing: "steps(4, end)" },
+      );
+    }
     showPose(services[index]);
-    updateBubble(services[index]);
+    showDesc(services[index]);
   }
 
-  function refreshCount() {
-    const info = el.querySelector<HTMLElement>(".hub__info")!;
-    const checked = [...states.values()].filter((v) => v !== "off");
-    info.hidden = !checked.length;
-    if (!checked.length) return;
-    const online = checked.filter((v) => v === "online").length;
-    const pending = checked.some((v) => v === "checking");
-    count.textContent = pending ? "…" : `${online}/${checked.length}`;
-    info.classList.toggle("is-bad", !pending && online < checked.length);
+  // ── Status panel ─────────────────────────────────────────────
+  function statusRow(s: Service): HTMLElement {
+    const li = document.createElement("li");
+    li.className = "status__row";
+    li.innerHTML = `<span class="status__name"></span><span class="status__bar"><i></i></span><span class="status__word"></span>`;
+    li.querySelector(".status__name")!.textContent = s.name;
+    return li;
+  }
+  function setState(li: HTMLElement, st: State) {
+    li.dataset.state = st;
+    li.querySelector(".status__word")!.textContent = st === "online" ? "ONLINE" : st === "offline" ? "DOWN" : st === "checking" ? "…" : "";
   }
 
   function setServices(list: Service[]) {
     services = list;
     ul.replaceChildren();
+    rows.replaceChildren();
     items = [];
     index = -1;
-    states.clear();
     if (!list.length) {
       const li = document.createElement("li");
       li.className = "hub__empty";
       li.textContent = "No services yet. Add one in config/services.yaml.";
       ul.append(li);
-      refreshCount();
       return;
     }
     list.forEach((s, i) => {
       const li = document.createElement("li");
       li.style.setProperty("--i", String(i));
-      li.style.setProperty("--tilt", `${[-5, 3, -3, 4, -2][i % 5]}deg`);
+      li.style.setProperty("--off", `${OFFSETS[i % OFFSETS.length]}em`);
       const a = document.createElement("a");
       a.className = "item";
       a.href = s.url;
       a.setAttribute("aria-label", s.subtitle ? `${s.name}, ${s.subtitle}` : s.name);
       a.innerHTML = `
-        <span class="item__burst" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
-        <span class="item__back" aria-hidden="true"></span>
-        <span class="item__collage" aria-hidden="true"></span>
-        <span class="item__status"><i></i></span>`;
-      letter(a, s, `item-${s.id}`);
+        <svg class="item__cursor" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">
+          <polygon class="cursor__cyan" points="-3,10 84,5 104,19 92,35 1,33"/>
+          <polygon class="cursor__red" points="0,6 88,0 100,15 90,30 4,27"/>
+        </svg>
+        <span class="item__collage" aria-hidden="true"></span>`;
+      letter(a, s, false);
       a.addEventListener("pointerenter", (e) => {
         if (e.pointerType === "mouse") select(i, false);
       });
       a.addEventListener("focus", () => select(i, false));
       a.addEventListener("click", (e) => {
         e.preventDefault();
-        // Touch: first tap selects, second tap goes.
         if (index !== i) {
-          select(i, false);
+          select(i, false); // touch: first tap selects, second goes
           return;
         }
         onGo(s);
@@ -222,22 +255,15 @@ export function createHub(site: SiteConfig, onGo: (s: Service) => void, onClose:
       ul.append(li);
       items.push(a);
 
-      const status = a.querySelector<HTMLElement>(".item__status")!;
+      const row = statusRow(s);
+      rows.append(row);
       if (site.statusChecks && s.status !== false) {
-        states.set(s.id, "checking");
-        status.dataset.state = "checking";
-        check(s.url).then((ok) => {
-          const st = ok ? "online" : "offline";
-          states.set(s.id, st);
-          status.dataset.state = st;
-          refreshCount();
-        });
+        setState(row, "checking");
+        check(s.url).then((ok) => setState(row, ok ? "online" : "offline"));
       } else {
-        states.set(s.id, "off");
-        status.dataset.state = "off";
+        setState(row, "off");
       }
     });
-    refreshCount();
     select(0, false);
   }
 
@@ -252,6 +278,7 @@ export function createHub(site: SiteConfig, onGo: (s: Service) => void, onClose:
       el.setAttribute("aria-hidden", "false");
       el.classList.remove("is-closing");
       el.classList.add("is-open");
+      if (!reduceMotion()) flash.animate([{ opacity: 0.9 }, { opacity: 0 }], { duration: 160, delay: 300, easing: "steps(3, end)" });
       if (index >= 0) setTimeout(() => items[index]?.focus({ preventScroll: true }), 60);
     },
     close() {

@@ -46,6 +46,8 @@ export interface SiteConfig {
   servicesSource: string;
   /** "mono" = harsh black & white figure in the hub, "color" = art as-is */
   hubFigure: "mono" | "color";
+  /** Photo/scene shown behind the menu, tinted red. Optional. */
+  hubBackdrop?: string;
 }
 
 export interface Service {
@@ -118,6 +120,7 @@ export async function loadSite(): Promise<SiteConfig> {
     statusChecks: raw.statusChecks ?? true,
     servicesSource: raw.servicesSource ?? "/config/services.yaml",
     hubFigure: raw.hubFigure === "color" ? "color" : "mono",
+    hubBackdrop: raw.hubBackdrop || undefined,
   };
 }
 

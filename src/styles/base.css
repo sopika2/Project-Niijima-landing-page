@@ -7,12 +7,16 @@
   --white: #fff;
   --paper: #efeadf;
   --online: #3ddc84;
+  /* Secondary colours: only for highlights and status, never for surfaces */
+  --cyan: #1cfeff;
+  --magenta: #ff2fa0;
 
   --f-display: "Anton", "Bebas Neue", Impact, sans-serif;
   --f-heavy: "Archivo Black", "Anton", sans-serif;
   --f-condensed: "Oswald", "Bebas Neue", sans-serif;
   --f-serif: "Playfair Display", Georgia, serif;
   --f-mono: "Rubik Mono One", "Archivo Black", sans-serif;
+  --f-body: "Noto Sans", "Helvetica Neue", Arial, sans-serif;
 
   /* Snaps with a slight overshoot — nothing in this UI glides. */
   --ease-snap: cubic-bezier(0.7, 0, 0.2, 1);

@@ -71,7 +71,11 @@ calendar:
   longitude: 19.0402
 
 # Hub figure: mono = harsh black & white cut-out, color = your art as-is.
-hubFigure: mono
+hubFigure: color
+
+# Scene behind the menu (any photo or render — a room, a street, Shibuya at night…).
+# It gets tinted red automatically. Leave as-is until you have one; a plain red scene is used.
+hubBackdrop: /assets/backdrop.webp
 
 # Ping each service and show ONLINE / OFFLINE in the hub.
 statusChecks: true

@@ -52,6 +52,11 @@
 .ransom__ch--v5 { --tile: var(--black); --fg: var(--red); font-family: var(--f-condensed); font-weight: 700; }
 .ransom__ch--v6 { --tile: var(--white); --fg: var(--red); font-family: var(--f-serif); font-weight: 900; }
 
+/* "mono": black and white only — resting menu items. */
+.ransom--mono .ransom__ch--v2 { --tile: var(--white); --fg: var(--black); }
+.ransom--mono .ransom__ch--v5 { --tile: var(--black); --fg: var(--white); }
+.ransom--mono .ransom__ch--v6 { --tile: var(--black); --fg: var(--white); }
+
 /* "dark" palette sits on red backgrounds — no red-on-red tiles. */
 .ransom--dark .ransom__ch--v2 { --tile: var(--white); --fg: var(--red); }
 .ransom--dark .ransom__ch--v5 { --tile: var(--black); --fg: var(--white); }
