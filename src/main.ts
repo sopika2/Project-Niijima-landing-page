@@ -15,9 +15,10 @@ async function boot() {
   const site = await loadSite();
   document.title = site.title;
 
-  // The very first paint is the loader; the split reveals once fonts and config are in.
+  // The very first paint is the loader, already in place (no wipe-in, or the page being built
+  // underneath shows through the part the wipe hasn't covered yet). The split reveals once fonts and config are in.
   const loader = createLoader(site.loader);
-  const firstShow = loader.show();
+  const firstShow = loader.show(true);
 
   const host = location.hostname;
   const isSubdomain = host.endsWith(`.${site.domain}`) && host !== `www.${site.domain}`;
