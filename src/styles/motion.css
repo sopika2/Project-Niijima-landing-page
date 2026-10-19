@@ -9,9 +9,23 @@
 
 /* Menu items slam in from the right with an overshoot */
 @keyframes slam {
-  from { translate: 60vw 0; opacity: 0; }
-  70% { translate: -1.2rem 0; opacity: 1; }
+  from { translate: -60vw 0; opacity: 0; }
+  70% { translate: 1.2rem 0; opacity: 1; }
   to { translate: 0 0; }
+}
+
+/* Hover rattle */
+@keyframes rattle {
+  0% { translate: 0 0; }
+  50% { translate: 2px -2px; }
+  100% { translate: -2px 1px; }
+}
+
+/* Selection burst shards fly outward */
+@keyframes shard {
+  0% { opacity: 1; transform: rotate(var(--a)) translateX(0) scaleX(0.3); }
+  60% { opacity: 1; transform: rotate(var(--a)) translateX(0.5em) scaleX(1); }
+  100% { opacity: 0; transform: rotate(var(--a)) translateX(0.9em) scaleX(0.6); }
 }
 
 /* Background stripes creep sideways while the hub is idle */

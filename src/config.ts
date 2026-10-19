@@ -44,6 +44,8 @@ export interface SiteConfig {
   calendar: { timezone: string; weather: boolean; latitude: number; longitude: number };
   statusChecks: boolean;
   servicesSource: string;
+  /** "mono" = harsh black & white figure in the hub, "color" = art as-is */
+  hubFigure: "mono" | "color";
 }
 
 export interface Service {
@@ -69,7 +71,7 @@ const DEFAULT_SISTER = (id: SisterId): Sister => ({
   tagline: "",
   url: "#",
   ready: false,
-  accent: id === "makoto" ? "#3f8cff" : "#e7b544",
+  accent: "#e5191c",
   image: { focusX: 50, focusY: 25, scale: 1, offsetX: 0, offsetY: 0 },
 });
 
@@ -115,6 +117,7 @@ export async function loadSite(): Promise<SiteConfig> {
     },
     statusChecks: raw.statusChecks ?? true,
     servicesSource: raw.servicesSource ?? "/config/services.yaml",
+    hubFigure: raw.hubFigure === "color" ? "color" : "mono",
   };
 }
 

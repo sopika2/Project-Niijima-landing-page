@@ -22,7 +22,6 @@ sisters:
     tagline: Student Council President
     url: https://makoto.niijimasisters.com
     ready: false
-    accent: "#3f8cff"
     image:
       desktop: /assets/makoto.webp
       mobile: /assets/makoto-mobile.webp
@@ -39,7 +38,6 @@ sisters:
     tagline: Public Prosecutor
     url: https://sae.niijimasisters.com
     ready: false
-    accent: "#e7b544"
     image:
       desktop: /assets/sae.webp
       mobile: /assets/sae-mobile.webp
@@ -71,6 +69,9 @@ calendar:
   weather: true       # uses open-meteo.com (free, no key)
   latitude: 47.4979
   longitude: 19.0402
+
+# Hub figure: mono = harsh black & white cut-out, color = your art as-is.
+hubFigure: mono
 
 # Ping each service and show ONLINE / OFFLINE in the hub.
 statusChecks: true
