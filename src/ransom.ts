@@ -1,5 +1,6 @@
-// Ransom-note lettering: every letter gets its own font, colour block and tilt.
-// Seeded by the text itself, so the same word always looks the same.
+// Collage lettering: every letter is its own cut-out — mismatched font, tile and tilt —
+// and each word is wrapped in a thick sticker outline. Seeded by the text, so the same
+// word always comes out the same.
 
 export function seeded(seedText: string): () => number {
   let h = 2166136261;
@@ -16,22 +17,31 @@ export function seeded(seedText: string): () => number {
   };
 }
 
-const VARIANTS = 6;
+const VARIANTS = 7;
 
-/**
- * @param palette "dark" = mostly black/white tiles, "red" = red tiles mixed in
- */
-export function ransom(text: string, opts: { palette?: "dark" | "red"; seed?: string } = {}): HTMLElement {
+export interface RansomOptions {
+  /** "dark" for red backgrounds (no red tiles), "red" allows red tiles. */
+  palette?: "dark" | "red";
+  seed?: string;
+  /** Randomly drop some letters to lower case, menu-label style. */
+  mixCase?: boolean;
+  /** Make the first letter of each word noticeably bigger. Default true. */
+  bigFirst?: boolean;
+}
+
+export function ransom(text: string, opts: RansomOptions = {}): HTMLElement {
   const rand = seeded(opts.seed ?? text);
+  const bigFirst = opts.bigFirst ?? true;
   const wrap = document.createElement("span");
   wrap.className = `ransom ransom--${opts.palette ?? "dark"}`;
   wrap.setAttribute("aria-label", text);
 
   let prev = -1;
-  // Letters are grouped per word so lines only break between words.
   let word: HTMLElement | null = null;
-  for (const ch of text) {
-    if (ch === " ") {
+  let indexInWord = 0;
+
+  for (const raw of text) {
+    if (raw === " ") {
       word = null;
       continue;
     }
@@ -40,18 +50,32 @@ export function ransom(text: string, opts: { palette?: "dark" | "red"; seed?: st
       word.className = "ransom__word";
       word.setAttribute("aria-hidden", "true");
       wrap.append(word);
+      indexInWord = 0;
     }
-    const el = document.createElement("span");
-    el.setAttribute("aria-hidden", "true");
+
+    let ch = raw;
+    if (opts.mixCase && indexInWord > 0 && /[a-z]/i.test(ch) && rand() < 0.4) ch = ch.toLowerCase();
+
     let v = Math.floor(rand() * VARIANTS);
-    if (v === prev) v = (v + 1) % VARIANTS;
+    if (v === prev) v = (v + 1 + Math.floor(rand() * (VARIANTS - 1))) % VARIANTS;
     prev = v;
+
+    const el = document.createElement("span");
     el.className = `ransom__ch ransom__ch--v${v}`;
     el.textContent = ch;
-    el.style.setProperty("--rot", `${(rand() * 14 - 7).toFixed(1)}deg`);
-    el.style.setProperty("--dy", `${(rand() * 0.16 - 0.08).toFixed(2)}em`);
-    el.style.setProperty("--sz", `${(0.86 + rand() * 0.3).toFixed(2)}`);
+
+    const first = indexInWord === 0 && bigFirst;
+    const size = first ? 1.28 + rand() * 0.14 : 0.82 + rand() * 0.32;
+    el.style.setProperty("--sz", size.toFixed(2));
+    el.style.setProperty("--rot", `${(rand() * 18 - 9).toFixed(1)}deg`);
+    el.style.setProperty("--dy", `${(rand() * 0.2 - 0.1).toFixed(2)}em`);
+    // Irregular cut: every tile is a slightly different quadrilateral.
+    const j = () => (rand() * 9).toFixed(1);
+    el.style.setProperty("--cut", `polygon(${j()}% ${j()}%, ${100 - +j()}% ${j()}%, ${100 - +j()}% ${100 - +j()}%, ${j()}% ${100 - +j()}%)`);
+    el.style.zIndex = String(Math.floor(rand() * 4));
+
     word.append(el);
+    indexInWord++;
   }
   return wrap;
 }
