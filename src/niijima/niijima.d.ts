@@ -51,6 +51,10 @@ export interface NjHomeOptions {
   weather?: { latitude: number; longitude: number } | null;
   credit?: string;
   navigate?: (url: string, item: NjEntry | NjSister, wipe: HTMLElement | null) => void;
+  /** Called with the sister's id when one is picked on the split screen. */
+  onSister?: (id: string) => void;
+  /** The menu entry to highlight when the Network opens without a sister picked. */
+  preferred?: () => string | null;
 }
 
 export interface NjHome {
