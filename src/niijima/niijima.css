@@ -290,9 +290,11 @@
 .nj-slot--cover img { inset: auto; left: 50%; bottom: 0; width: auto; height: auto; max-width: none; max-height: 100%; transform: translateX(-50%); object-fit: contain; }
 .nj-slot--cover.nj-slot--flip img { transform: translateX(-50%) scaleX(-1); }
 .nj-slot--flip img { transform: scaleX(-1); }
-.nj-detail__slot.nj-slot--cover { top: 0; bottom: auto; height: 64%; right: -2%; width: 66%; }
+.nj-detail__slot.nj-slot--cover { top: -5%; bottom: auto; height: 80%; right: -2%; width: 70%; }
 .nj-detail__slot.nj-slot--cover img { top: 0; bottom: auto; }
-.nj-detail__slot.nj-slot--cover { clip-path: polygon(-20% -10%, 120% -10%, 120% 86%, -20% 100%); }
+/* The bust-up is cut on a slant *inside* the art, so the portrait's own flat bottom edge (and the outline
+   the drop-shadows trace along it) never shows. The clip runs after the filter, so the cut itself stays clean. */
+.nj-detail__slot.nj-slot--cover { clip-path: polygon(-20% -10%, 120% -10%, 120% 84%, -20% 96%); }
 .nj-slot.is-loaded .nj-slot__ph { display: none; }
 .nj-slot--on-ink .nj-slot__ph { background: repeating-linear-gradient(-58deg, var(--dot-light) 0 2px, transparent 2px 16px); }
 
@@ -538,7 +540,7 @@
 
 /* the speech box: a skewed quadrilateral with a tail pointing at the render */
 .nj-speech {
-  --sp-bg: var(--paper); --sp-ink: var(--ink); --sp-accent: var(--thief-red); --sp-host: var(--thief-red); --tail-h: 74px;
+  --sp-bg: var(--paper); --sp-ink: var(--ink); --sp-accent: var(--thief-red); --sp-host: var(--thief-red); --tail-h: 46px;
   position: absolute; z-index: 4; left: 51%; bottom: clamp(40px, 6.5cqh, 70px); width: min(34%, 500px); padding-top: var(--tail-h);
   transform: rotate(var(--tilt-sm)); transform-origin: 0 100%;
   filter: drop-shadow(-6px 6px 0 var(--ink)) drop-shadow(10px 9px 0 var(--sp-accent));
