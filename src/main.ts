@@ -2,9 +2,11 @@ import "./fonts";
 import "./niijima/niijima.css";
 import "./niijima/niijima.js";
 import "./site.css";
+import { applyPersona, getPersona } from "@niijima/design";
 import { loadServices, loadSite, toNiijima } from "./config";
 import { createLoader } from "./loader";
 import { createNotFound, type PalaceKind } from "./notfound";
+import { createPersonaSwitch, pickPersona } from "./persona";
 import { startStatus } from "./status";
 
 async function boot() {
@@ -14,6 +16,7 @@ async function boot() {
 
   const site = await loadSite();
   document.title = site.title;
+  applyPersona(getPersona());
 
   // The very first paint is the loader, already in place (no wipe-in, or the page being built
   // underneath shows through the part the wipe hasn't covered yet). The split reveals once fonts and config are in.
@@ -60,6 +63,8 @@ async function boot() {
     timezone: calendar.timezone,
     weather: calendar.weather ? { latitude: calendar.latitude, longitude: calendar.longitude } : null,
     credit: site.credit,
+    onSister: pickPersona,
+    preferred: () => getPersona(),
     // Shards cover the screen → "Take your time" → the browser leaves.
     navigate(url, _item, wipe) {
       loader.through(() => {
@@ -68,6 +73,11 @@ async function boot() {
       });
     },
   });
+
+  const names = Object.fromEntries(site.sisters.map((s) => [s.id, s.name])) as Record<string, string>;
+  app
+    .querySelector(".nj-home__net")
+    ?.append(createPersonaSwitch({ makoto: names.makoto ?? "Makoto", sae: names.sae ?? "Sae" }));
 
   startStatus(site, network, home);
 

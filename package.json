@@ -15,6 +15,7 @@
     "@fontsource/archivo-black": "^5.3.0",
     "@fontsource/barlow-semi-condensed": "^5.3.0",
     "@fontsource/special-elite": "^5.3.0",
+    "@niijima/design": "https://codeload.github.com/sopika2/Niijima-Design/tar.gz/ab9ae651e5a280f23565f11fb1975ff25d78304b",
     "yaml": "^2.6.0"
   },
   "devDependencies": {

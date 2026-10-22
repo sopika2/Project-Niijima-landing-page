@@ -486,7 +486,7 @@
 .nj-net .nj-uptime-hud { position: absolute; z-index: 7; left: clamp(18px, 3cqw, 46px); bottom: clamp(20px, 4cqh, 38px); }
 
 /* the menu */
-.nj-menu { --mfs: clamp(26px, min(4.5cqw, 7cqh), 76px); position: absolute; z-index: 3; left: clamp(16px, 4cqw, 64px); top: clamp(140px, 22cqh, 220px); width: min(52%, 760px); }
+.nj-menu { --mfs: clamp(26px, min(4.5cqw, 7cqh, calc(42cqh / var(--n, 6))), 76px); position: absolute; z-index: 3; left: clamp(16px, 4cqw, 64px); top: clamp(140px, 22cqh, 220px); width: min(52%, 760px); }
 /* rows never move when the selection changes (moving rows under the cursor made clicks land on the wrong item) */
 .nj-menu__list { position: relative; z-index: 1; list-style: none; margin: 0; padding: 0; }
 .nj-menu__li { display: flex; align-items: center; height: calc(var(--mfs) * 1.06); transform: translateX(calc(var(--i, 0) * 2.3cqw)) rotate(var(--r, 0deg)); transform-origin: 0 50%; }
@@ -583,7 +583,7 @@
   .nj-detail { display: none; } /* no room for the bust-up on a phone: the menu and its card carry the screen */
   .nj-detail__slot .nj-slot__ph { padding-top: 78%; }
   .nj-menu { left: 12px; top: clamp(112px, 18cqh, 170px); width: 74%; }
-  .nj-menu { --mfs: clamp(24px, min(8.4cqw, 5cqh), 44px); }
+  .nj-menu { --mfs: clamp(24px, min(8.4cqw, 5cqh, calc(34cqh / var(--n, 6))), 44px); }
   .nj-menu__li { transform: translateX(calc(var(--i, 0) * 2.2cqw)) rotate(var(--r, 0deg)); }
   .nj-speech { left: 14px; right: 18px; width: auto; bottom: 80px; --tail-h: 56px; }
   .nj-card { padding: 28px 24px 20px 22px; }

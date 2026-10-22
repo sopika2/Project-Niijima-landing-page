@@ -127,6 +127,28 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--ink); 
   font: 600 11px/1.35 var(--font-body); letter-spacing: .06em;
 }
 
+/* MAKOTO | SAE on the Network screen, tucked under BACK (same look as @niijima/design's switch). */
+.nj-persona {
+  position: absolute; z-index: 9; right: clamp(20px, 3cqw, 46px); top: clamp(76px, 10.5cqh, 100px);
+  display: inline-flex; align-items: center; gap: 6px; transform: rotate(-3deg);
+}
+.nj-persona__opt {
+  padding: 6px 12px 4px; border: 0; background: var(--ink); color: var(--paper-muted);
+  font: 400 16px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; cursor: pointer;
+  clip-path: polygon(6% 0, 100% 6%, 94% 100%, 0 92%);
+  box-shadow: inset 0 0 0 2px var(--ink-raised);
+  transition: transform .14s var(--nj-snap), color .05s, background-color .05s;
+}
+.nj-persona__opt:hover { color: var(--paper); transform: scale(1.06); }
+.nj-persona__opt:focus-visible { outline: 3px solid var(--paper); outline-offset: 2px; }
+.nj-persona__opt[aria-pressed="true"][data-who="makoto"] { background: var(--makoto-cyan); color: var(--ink); }
+.nj-persona__opt[aria-pressed="true"][data-who="sae"] { background: var(--sae-gold); color: var(--ink); }
+@media (max-width: 759.98px) {
+  .nj-persona { right: 14px; top: 64px; }
+  .nj-persona__opt { padding: 5px 9px 3px; font-size: 14px; }
+  .nj-home[data-screen="network"] .nj-sound { right: auto; left: 16px; top: auto; bottom: 64px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .nj-loader, .nj-loader *, .nj-palace * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
   .nj-loader__figure--placeholder svg { animation: none !important; }

@@ -583,6 +583,8 @@
     hud(target.querySelector('.nj-net__hudbox'), { date: opts.date, timezone: opts.timezone, weather: opts.weather });
 
     var menuEl = target.querySelector('.nj-menu');
+    // Longer menus get smaller words, so every entry fits above the ONLINE counter.
+    menuEl.style.setProperty('--n', String(Math.max(6, items.length)));
     var hl = target.querySelector('.nj-menu__hl');
     var polys = { accent: hl.querySelector('.hl-accent'), back: hl.querySelector('.hl-back'), front: hl.querySelector('.hl-front') };
     var speech = target.querySelector('.nj-speech');
@@ -783,12 +785,14 @@
     }
     function pick(i) {
       var s = cfg.sisters[i];
+      if (opts.onSister) opts.onSister(s.id);
       if (cfg.sisterOpens === 'site') { go(sisterAt(i), opts); return; }
       sfx.play('confirm');
       toNetwork({ select: s.id, title: s.name, accent: s.accent });
     }
     var landCtl = landing(land, cfg.sisters, Object.assign({}, opts, { onPick: pick, onCue: function () { sfx.play('confirm'); toNetwork(); } }));
     var netCtl = network(netEl, cfg.network, Object.assign({ deferRenders: true }, opts, { onBack: back }));
+    if (opts.preferred) { var first = opts.preferred(); if (first != null) netCtl.activateById(first); }
 
     function hashScreen() { return location.hash === '#network' ? 'network' : 'top'; }
     function show(name, initial) {
@@ -810,7 +814,8 @@
     function toNetwork(o) {
       o = o || {};
       if (busy || current === 'network') return;
-      if (o.select != null) netCtl.activateById(o.select);
+      var select = o.select != null ? o.select : opts.preferred ? opts.preferred() : null;
+      if (select != null) netCtl.activateById(select);
       busy = true;
       if (useHistory) { try { history.pushState({ nj: 'network' }, '', '#network'); } catch (e) { /* sandboxed */ } }
       slash({ title: o.title || 'THE NETWORK', accent: o.accent, done: settle }, function () { show('network'); });
