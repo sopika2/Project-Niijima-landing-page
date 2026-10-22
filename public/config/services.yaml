@@ -60,17 +60,17 @@ services:
   - id: treasure
     label: Treasure
     host: treasure.niijimasisters.com
-    hint: Private · Discord sign-in
+    hint: Private
     status: online
     monitorId: null
     arcana: X
     arcanaName: Fortune
-    desc: The finance tracker. Each sister’s books, plus what they share. Members only.
+    desc: The finance tracker. Each sister’s books, plus what they share.
 
   - id: calendar
     label: Calendar
     host: calendar.niijimasisters.com
-    hint: Private · Discord sign-in
+    hint: Private
     status: online
     monitorId: null
     arcana: XXI
@@ -80,7 +80,7 @@ services:
   - id: archive
     label: Archive
     host: archive.niijimasisters.com
-    hint: Private · Discord sign-in
+    hint: Private
     status: online
     monitorId: null
     arcana: XVII
