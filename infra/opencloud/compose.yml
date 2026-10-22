@@ -1,0 +1,56 @@
+# OpenCloud: personal cloud (file sync) at cloud.niijimasisters.com, behind Traefik + Cloudflare Tunnel.
+#
+#   cp .env.example .env      (set INITIAL_ADMIN_PASSWORD)
+#   docker compose up -d
+#
+# Config (with generated secrets) lives in ./config, files live on the extra disk at /mnt/cloud.
+# Based on the official https://github.com/opencloud-eu/opencloud-compose, trimmed to one container.
+
+services:
+  opencloud:
+    # "opencloudeu/opencloud" = production releases; 7 = current production major (README "Version").
+    image: opencloudeu/opencloud:${OC_MAJOR:-7}
+    container_name: opencloud
+    restart: unless-stopped
+    user: '${PUID:-1000}:${PGID:-1000}'
+    # First start: `opencloud init` writes config/opencloud.yaml with random secrets and the admin
+    # password. Later starts: init fails because the file exists (ignored), then the server starts.
+    entrypoint: ['/bin/sh']
+    command: ['-c', 'opencloud init || true; opencloud server']
+    environment:
+      # The public address. Must match what you type in the browser, https included.
+      OC_URL: https://${OC_DOMAIN:-cloud.niijimasisters.com}
+      # Listen on all interfaces inside the container so Traefik can reach it.
+      PROXY_HTTP_ADDR: 0.0.0.0:9200
+      # Plain HTTP between Traefik and OpenCloud. Cloudflare does TLS for visitors.
+      PROXY_TLS: 'false'
+      # false = verify certificates. OpenCloud talks to its own login service through OC_URL,
+      # which has a real Cloudflare certificate, so this can stay false (README "Troubleshooting").
+      OC_INSECURE: ${OC_INSECURE:-false}
+      # Only read on the very first start (by `opencloud init`). User name is "admin".
+      IDM_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:?Set INITIAL_ADMIN_PASSWORD in .env}
+      IDM_CREATE_DEMO_USERS: 'false'
+      OC_LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Allow "download as zip" of big folders (bytes).
+      FRONTEND_ARCHIVER_MAX_SIZE: '10000000000'
+      OC_DEFAULT_LANGUAGE: ${DEFAULT_LANGUAGE:-en}
+    volumes:
+      - ./config:/etc/opencloud
+      - ${OC_DATA_DIR:-/mnt/cloud/opencloud-data}:/var/lib/opencloud
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-zipline_default}
+      - traefik.http.routers.opencloud.rule=Host(`${OC_DOMAIN:-cloud.niijimasisters.com}`)
+      - traefik.http.routers.opencloud.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
+      - traefik.http.services.opencloud.loadbalancer.server.port=9200
+    deploy:
+      resources:
+        limits:
+          memory: 1536m
+
+networks:
+  proxy:
+    name: ${TRAEFIK_NETWORK:-zipline_default}
+    external: true

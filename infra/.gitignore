@@ -1,0 +1,5 @@
+# Runtime data and secrets created when you run these services. Never commit them.
+.env
+*/data/
+*/config/
+*/backups/

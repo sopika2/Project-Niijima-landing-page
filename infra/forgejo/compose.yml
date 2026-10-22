@@ -1,0 +1,56 @@
+# Forgejo: personal git server at git.niijimasisters.com, behind Traefik + Cloudflare Tunnel.
+#
+#   cp .env.example .env      (then check the values)
+#   docker compose up -d
+#
+# Everything Forgejo stores (repos, SQLite database, config, avatars) lives in ./data.
+
+services:
+  forgejo:
+    # 15 is the current LTS line (supported to mid-2027). See README "Version" before changing.
+    image: codeberg.org/forgejo/forgejo:${FORGEJO_MAJOR:-15}
+    container_name: forgejo
+    restart: unless-stopped
+    environment:
+      # Files in ./data are owned by this user. Use the output of `id -u` / `id -g`.
+      USER_UID: ${PUID:-1000}
+      USER_GID: ${PGID:-1000}
+      # Any app.ini setting can be set as FORGEJO__<section>__<KEY>.
+      FORGEJO__database__DB_TYPE: sqlite3
+      FORGEJO__server__DOMAIN: ${FORGEJO_HOST:-git.niijimasisters.com}
+      FORGEJO__server__ROOT_URL: https://${FORGEJO_HOST:-git.niijimasisters.com}/
+      FORGEJO__server__HTTP_PORT: '3000'
+      # Host name shown in "clone with SSH" URLs (only used if you set up SSH, see README).
+      FORGEJO__server__SSH_DOMAIN: ${FORGEJO_SSH_HOST:-ssh-git.niijimasisters.com}
+      FORGEJO__server__SSH_PORT: '22'
+      FORGEJO__server__DISABLE_SSH: ${FORGEJO_DISABLE_SSH:-false}
+      # Nobody can sign up. You create the admin in the install page (README step 3).
+      FORGEJO__service__DISABLE_REGISTRATION: 'true'
+      FORGEJO__service__REQUIRE_SIGNIN_VIEW: ${FORGEJO_REQUIRE_SIGNIN_VIEW:-false}
+      # Pull mirrors: how often to re-fetch from GitHub by default.
+      FORGEJO__mirror__DEFAULT_INTERVAL: ${FORGEJO_MIRROR_INTERVAL:-8h}
+      # Actions are off until you set up a runner (README "Actions runner").
+      FORGEJO__actions__ENABLED: ${FORGEJO_ACTIONS:-false}
+    volumes:
+      - ./data:/data
+      # Where `forgejo dump` writes backups (see backup.sh).
+      - ./backups:/backups
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - proxy
+    # No `ports:`. HTTP goes through Traefik; SSH (optional) goes through cloudflared.
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-zipline_default}
+      - traefik.http.routers.forgejo.rule=Host(`${FORGEJO_HOST:-git.niijimasisters.com}`)
+      - traefik.http.routers.forgejo.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
+      - traefik.http.services.forgejo.loadbalancer.server.port=3000
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+
+networks:
+  proxy:
+    name: ${TRAEFIK_NETWORK:-zipline_default}
+    external: true
