@@ -105,7 +105,7 @@ ingress:
   - service: http_status:404
 ```
 
-`forgejo:22` only works if the cloudflared container is on the `proxy` network. If cloudflared runs directly on the host
+`forgejo:22` only works if the cloudflared container is on the `zipline_default` network. If cloudflared runs directly on the host
 (not in Docker), add `ports: ["127.0.0.1:2222:22"]` to the Forgejo service and use `ssh://localhost:2222`.
 
 Recommended: protect the hostname with **Zero Trust → Access → Applications → Add → Self-hosted**, set to `ssh-git.niijimasisters.com`, with a policy

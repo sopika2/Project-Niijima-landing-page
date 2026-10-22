@@ -12,11 +12,11 @@ Deployment guides for the self-hosted Niijima services. Each folder is self-cont
 ## How the VM services fit together
 
 ```
-Internet ─► Cloudflare (TLS) ─► cloudflared tunnel ─► Traefik :80 (entrypoint "web", network "proxy") ─► containers
+Internet ─► Cloudflare (TLS) ─► cloudflared tunnel ─► Traefik :80 (entrypoint "web", network "zipline_default") ─► containers
 ```
 
 Every web service uses the same Traefik labels as Treasure: a plain-HTTP router with `Host(...)`, entrypoint `web`, and
-`traefik.docker.network=proxy`, on the external `proxy` network. Don't publish any `ports:`. Because `*.niijimasisters.com` already
+`traefik.docker.network=zipline_default`, on the external `zipline_default` network. Don't publish any `ports:`. Because `*.niijimasisters.com` already
 points through the tunnel, a new subdomain only needs the labels. The landing page's catch-all router has priority 1, so a specific `Host` rule always wins over it.
 
 ## VM budget (2 vCPU, 7.8 GB RAM, 49 GB disk, about 32 GB free)
