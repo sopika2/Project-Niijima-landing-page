@@ -23,7 +23,7 @@ sisters:
   - id: makoto
     name: Makoto
     host: makoto.niijimasisters.com
-    status: online
+    status: soon
     arcana: II
     plates: [Codename · Queen, II · Priestess]
     tagline: Council president. Strategist. Iron fist.
@@ -34,7 +34,7 @@ sisters:
   - id: sae
     name: Sae
     host: sae.niijimasisters.com
-    status: online
+    status: soon
     arcana: XX
     glyph: "§"                   # giant watermark on her side
     plates: [Public prosecutor, XX · Judgement]
