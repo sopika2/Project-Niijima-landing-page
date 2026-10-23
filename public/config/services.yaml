@@ -20,7 +20,7 @@ services:
     accent: makoto
     arcana: II
     arcanaName: The Priestess
-    desc: Makoto’s own page.
+    desc: Makoto’s inbox. Mail to makoto@niijimasisters.com, the shared inbox, and all mail.
     render: /assets/menu-makoto.webp
     renderFit: cover
 
@@ -31,7 +31,7 @@ services:
     accent: sae
     arcana: XX
     arcanaName: Judgement
-    desc: Sae’s own page.
+    desc: Sae’s inbox. Mail to sae@niijimasisters.com, the shared inbox, and all mail.
     render: /assets/menu-sae.webp
     renderFit: cover
 
