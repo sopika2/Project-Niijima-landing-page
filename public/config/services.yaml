@@ -16,22 +16,22 @@ services:
   - id: makoto
     label: Makoto
     host: makoto.niijimasisters.com
-    status: online
+    status: soon
     accent: makoto
     arcana: II
     arcanaName: The Priestess
-    desc: Makoto’s start page. Search, her links, today’s plans and her money at a glance.
+    desc: Makoto’s inbox. Mail to makoto@niijimasisters.com, the shared inbox, and all mail.
     render: /assets/menu-makoto.webp
     renderFit: cover
 
   - id: sae
     label: Sae
     host: sae.niijimasisters.com
-    status: online
+    status: soon
     accent: sae
     arcana: XX
     arcanaName: Judgement
-    desc: Sae’s start page. Search, her links, today’s plans and her money at a glance.
+    desc: Sae’s inbox. Mail to sae@niijimasisters.com, the shared inbox, and all mail.
     render: /assets/menu-sae.webp
     renderFit: cover
 
@@ -66,6 +66,16 @@ services:
     arcana: X
     arcanaName: Fortune
     desc: The finance tracker. Each sister’s books, plus what they share.
+
+  - id: home
+    label: Home
+    host: home.niijimasisters.com
+    hint: Private
+    status: online
+    monitorId: null
+    arcana: XIX
+    arcanaName: The Sun
+    desc: The start page. Search, links, today’s plans, money and the latest wiki pages at a glance.
 
   - id: calendar
     label: Calendar
